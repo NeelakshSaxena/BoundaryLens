@@ -4,7 +4,7 @@ Use the official/primary pages below as starting points. Access conditions and l
 
 ## SIH
 SIH26011 problem statement:
-https://sih2026.vuce.in/en/ps/SIH26011
+https://www.sih.gov.in/sih2026PS
 
 ## Bhu-Naksha
 Official portal:
