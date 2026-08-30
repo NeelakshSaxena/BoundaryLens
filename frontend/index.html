@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BoundaryLens | SIH26011</title>
+    
+    <!-- MapLibre GL JS -->
+    <script src="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.css" rel="stylesheet" />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons for premium SVG icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <link href="styles.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="app-container">
+        <!-- Map Container -->
+        <div id="map"></div>
+        
+        <!-- Sidebar UI -->
+        <aside class="sidebar glass-panel">
+            <header class="sidebar-header">
+                <div class="logo">
+                    <i class="ph-fill ph-polygon"></i>
+                    <h1>BoundaryLens</h1>
+                </div>
+                <p class="subtitle">SIH26011 Vertical Delineation Prototype</p>
+                <div class="badges">
+                    <span class="badge badge-ai">3D Spatial Linkage</span>
+                    <span class="badge badge-gis">EPSG:4326</span>
+                </div>
+            </header>
+
+            <div class="stats-container">
+                <div class="stat-box">
+                    <span class="stat-value" id="stat-buildings">-</span>
+                    <span class="stat-label">Linked Buildings</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value" id="stat-parcels">-</span>
+                    <span class="stat-label">Cadastral Parcels</span>
+                </div>
+            </div>
+
+            <div class="legend-container">
+                <h3>Match Status Legend</h3>
+                <div class="legend-item">
+                    <span class="legend-color contained"></span>
+                    <span>CONTAINED (>95% overlap)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color majority"></span>
+                    <span>MAJORITY (>50% overlap)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color conflict"></span>
+                    <span>CONFLICT (Boundary Overlap)</span>
+                </div>
+            </div>
+
+            <!-- Property Card (Hidden by default) -->
+            <div id="property-card" class="property-card hidden">
+                <h3><i class="ph ph-buildings"></i> Selected Structure</h3>
+                
+                <div class="prop-row">
+                    <span class="prop-label">ULPIN / Parcel ID</span>
+                    <span class="prop-value highlight" id="prop-ulpin">-</span>
+                </div>
+                
+                <div class="prop-row">
+                    <span class="prop-label">Match Status</span>
+                    <span class="prop-value" id="prop-match">-</span>
+                </div>
+                
+                <div class="prop-row">
+                    <span class="prop-label">Ground Elev (DEM)</span>
+                    <span class="prop-value" id="prop-dem">-</span>
+                </div>
+                
+                <div class="prop-row">
+                    <span class="prop-label">Height (m) / Floors</span>
+                    <span class="prop-value" id="prop-floors">-</span>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Data Source</span>
+                    <span class="prop-value" id="prop-source" style="font-size:11px; font-family:monospace;">-</span>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">AI Anomaly Status</span>
+                    <span class="prop-value" id="prop-ai-status">-</span>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Proposed 3D ULPIN</span>
+                    <span class="prop-value highlight" id="prop-3d-ulpin" style="color: #60a5fa; font-size:12px;">-</span>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Verification Gate</span>
+                    <span class="prop-value" id="prop-gate-status" style="font-weight:bold;">-</span>
+                </div>
+
+                <!-- Reviewer Audit Panel (Rule 8) -->
+                <div class="reviewer-panel" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <h4 style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">Reviewer Audit Gate (Rule 8)</h4>
+                    <div class="reviewer-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                        <button class="btn btn-approve" id="btn-approve" onclick="window.reviewAction('APPROVE')">APPROVE</button>
+                        <button class="btn btn-correct" id="btn-correct" onclick="window.reviewAction('CORRECT')">CORRECT</button>
+                        <button class="btn btn-reject" id="btn-reject" onclick="window.reviewAction('REJECT')">REJECT</button>
+                        <button class="btn btn-unresolved" id="btn-unresolved" onclick="window.reviewAction('MARK_UNRESOLVED')">UNRESOLVED</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Loader -->
+        <div id="loader" class="loader-overlay glass-panel">
+            <div class="spinner"></div>
+            <p>Initializing Spatial Context...</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
