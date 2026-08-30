@@ -1,5 +1,7 @@
 # BoundaryLens: SIH26011 Vertical Delineation Prototype
 
+![BoundaryLens Prototype Interface](frontend/public/Screenshot_31-8-2026_21530_localhost.jpeg)
+
 **BoundaryLens** is a fully functional 3D multi-storey vertical parcel delineation pipeline and interactive Web UI, built specifically for the **Smart India Hackathon 2024 (SIH26011)** problem statement: *"Assigning 3D identities for surface parcels, multi-storey properties and underground infrastructure"*.
 
 This prototype deterministically fuses 2D GIS cadastral layers, satellite-derived multi-storey height constraints, Copernicus DEM terrain elevation, and unsupervised AI anomaly detection to construct **Proposed 3D Vertical ULPINs** without fabricating official government data.
