@@ -1,11 +1,18 @@
 import os
 import requests
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+from config.config_loader import get_active_config
 
 def load_cadastral():
-    print("Loading Bengaluru Cadastral Maps from OpenCity...")
+    config = get_active_config()
+    print(f"Loading Cadastral Maps for {config['region_name']}...")
     
-    # URL obtained from Phase 1 Audit
-    url = "https://data.opencity.in/dataset/b5d91825-a104-41c8-bf93-3aedcfd58124/resource/3975e8d0-9a23-4b4b-a3c9-9453979406e4/download/038b4a89-98c8-49f7-aa1a-b3d073745d0b.kmz"
+    url = config["datasets"]["cadastral"]["url"]
+    if not url:
+        print("No cadastral URL provided in config. Skipping.")
+        return
     
     try:
         r = requests.get(url, stream=True)
@@ -14,7 +21,8 @@ def load_cadastral():
         out_dir = os.path.join("data", "raw")
         os.makedirs(out_dir, exist_ok=True)
         
-        out_path = os.path.join(out_dir, "bengaluru_cadastral.kmz")
+        # We rename it dynamically based on region, or just use a generic name
+        out_path = os.path.join(out_dir, f"{config['region_name'].lower().replace(' ', '_')}_cadastral.kmz")
         with open(out_path, "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)

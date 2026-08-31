@@ -1,51 +1,45 @@
 import json
 import os
+import sys
 
-# Jayanagar / Koramangala area is dense. 
-# Center approx: 12.9300° N, 77.6200° E
-# 2 sq km is roughly 1.414 km x 1.414 km.
-# 1 degree lat is ~111km. 1.414km is ~0.0127 degrees.
-# Delta lat/lon from center = 0.0127 / 2 = 0.00635 degrees.
-
-CENTER_LAT = 12.9300
-CENTER_LON = 77.6200
-OFFSET = 0.00635
-
-lat_min = CENTER_LAT - OFFSET
-lat_max = CENTER_LAT + OFFSET
-lon_min = CENTER_LON - OFFSET
-lon_max = CENTER_LON + OFFSET
-
-bbox_geojson = {
-    "type": "FeatureCollection",
-    "features": [
-        {
-            "type": "Feature",
-            "properties": {
-                "name": "Bengaluru Urban 2sqkm AOI"
-            },
-            "geometry": {
-                "type": "Polygon",
-                "coordinates": [[
-                    [lon_min, lat_min],
-                    [lon_max, lat_min],
-                    [lon_max, lat_max],
-                    [lon_min, lat_max],
-                    [lon_min, lat_min]
-                ]]
-            }
-        }
-    ]
-}
+# Ensure config module can be imported
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from config.config_loader import get_active_config
 
 def main():
+    config = get_active_config()
+    lon_min, lat_min, lon_max, lat_max = config["bbox"]
+    region_name = config["region_name"]
+
+    bbox_geojson = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {
+                    "name": f"{region_name} AOI"
+                },
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[
+                        [lon_min, lat_min],
+                        [lon_max, lat_min],
+                        [lon_max, lat_max],
+                        [lon_min, lat_max],
+                        [lon_min, lat_min]
+                    ]]
+                }
+            }
+        ]
+    }
+
     out_dir = os.path.join("data", "raw")
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, "aoi_bbox.geojson")
     with open(out_path, "w") as f:
         json.dump(bbox_geojson, f, indent=2)
     
-    print(f"Generated 2 sq km AOI bounding box at {out_path}")
+    print(f"Generated AOI bounding box for {region_name} at {out_path}")
     print(f"BBox (South, North, West, East): {lat_min}, {lat_max}, {lon_min}, {lon_max}")
 
 if __name__ == "__main__":

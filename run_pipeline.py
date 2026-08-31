@@ -22,6 +22,7 @@ def main():
         "scripts/ingestion/load_osm.py",
         "scripts/ingestion/load_cadastral.py",
         "scripts/ingestion/load_copernicus_dem.py",
+        "scripts/ingestion/load_bare_earth_dem.py",
         
         # Processing & Normalisation
         "scripts/03_normalise_layers.py",
@@ -40,7 +41,7 @@ def main():
         "scripts/10_fuse_evidence_engine.py",
         
         # Master Outputs & Compliance
-        "scripts/14_generate_vertical_ulpins.py"
+        # Note: 14_generate_vertical_ulpins.py was removed to strictly adhere to "No Fake ULPIN" rule.
     ]
 
     for script in scripts:

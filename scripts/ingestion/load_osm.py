@@ -1,12 +1,17 @@
 import os
 import requests
 import json
+import sys
+
+# Ensure config module can be imported
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+from config.config_loader import get_active_config
 
 def load_osm():
-    print("Loading OSM Building Footprints and Levels...")
+    config = get_active_config()
+    print(f"Loading OSM Building Footprints for {config['region_name']}...")
     
-    lat_min, lat_max = 12.92365, 12.93635
-    lon_min, lon_max = 77.61365, 77.62635
+    lon_min, lat_min, lon_max, lat_max = config["bbox"]
     bbox = f"{lat_min},{lon_min},{lat_max},{lon_max}"
     
     query = f'[out:json][timeout:25];(way["building"]({bbox});relation["building"]({bbox}););out body;>;out skel qt;'

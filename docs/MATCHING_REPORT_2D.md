@@ -3,7 +3,7 @@
 This report summarizes the deterministic 2D topological linkage between OpenCity cadastral parcels and OSM building footprints within the 2 sq km Bengaluru Urban AOI.
 
 ## Matching Rules Applied
-Geometries were projected to **EPSG:32643 (UTM Zone 43N)** for highly accurate metric area intersection calculations.
+Geometries were projected to the region's configured processing CRS for highly accurate metric area intersection calculations.
 - **CONTAINED**: Building footprint is >95% inside a single parcel.
 - **MAJORITY**: Building footprint is 50%-95% inside a single parcel.
 - **BOUNDARY_OVERLAP (CONFLICT)**: Building footprint intersects a parcel, but <50% of its area is inside it (likely crossing a boundary). Marked for human verification.

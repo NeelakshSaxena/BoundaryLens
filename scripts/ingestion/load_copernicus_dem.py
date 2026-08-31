@@ -1,15 +1,21 @@
 import os
 import requests
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+from config.config_loader import get_active_config
 
 def load_copernicus_dem():
-    print("Downloading Copernicus DEM GLO-30 for Bengaluru Urban from AWS Public Bucket (No Auth Required)...")
+    config = get_active_config()
+    print(f"Downloading Copernicus DSM for {config['region_name']}...")
     
-    # Public AWS S3 direct HTTPS URL for N12 E077 tile
-    url = "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N12_00_E077_00_DEM/Copernicus_DSM_COG_10_N12_00_E077_00_DEM.tif"
+    url = config["datasets"]["elevation"]["url"]
+    out_path = os.path.join("data", "raw", "copernicus_dem_glo30.tif")
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
     
-    out_dir = os.path.join("data", "raw")
-    os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, "copernicus_dem_glo30.tif")
+    if not url:
+        print("No DSM URL provided in config. Skipping.")
+        return
     
     try:
         print(f"Fetching from {url}...")
@@ -27,10 +33,10 @@ def load_copernicus_dem():
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
                 
-        print(f"Successfully downloaded Copernicus DEM to {out_path}")
+        print(f"Successfully downloaded Copernicus DSM to {out_path}")
         
     except Exception as e:
-        print(f"Failed to download Copernicus DEM automatically: {e}")
+        print(f"Failed to download Copernicus DSM automatically: {e}")
         print("Alternative: You can download NASADEM / SRTM 30m or Copernicus DEM via OpenTopography freely.")
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ def generate_report(stats, report_path):
 This report summarizes the deterministic 2D topological linkage between OpenCity cadastral parcels and OSM building footprints within the 2 sq km Bengaluru Urban AOI.
 
 ## Matching Rules Applied
-Geometries were projected to **EPSG:32643 (UTM Zone 43N)** for highly accurate metric area intersection calculations.
+Geometries were projected to the region's configured processing CRS for highly accurate metric area intersection calculations.
 - **CONTAINED**: Building footprint is >95% inside a single parcel.
 - **MAJORITY**: Building footprint is 50%-95% inside a single parcel.
 - **BOUNDARY_OVERLAP (CONFLICT)**: Building footprint intersects a parcel, but <50% of its area is inside it (likely crossing a boundary). Marked for human verification.
@@ -55,6 +55,13 @@ def main():
         print("Please run: pip install shapely pyproj")
         return
 
+    import sys
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    from config.config_loader import get_active_config
+    config = get_active_config()
+    CRS_SOURCE = config.get("crs_source", "EPSG:4326")
+    CRS_PROCESSING = config.get("crs_processing", "EPSG:32643")
+
     bldgs_path = os.path.join("data", "processed", "osm_buildings_valid.geojson")
     parcels_path = os.path.join("data", "processed", "cadastral_parcels_valid.geojson")
     out_path = os.path.join("data", "processed", "buildings_linked_2d.geojson")
@@ -67,10 +74,10 @@ def main():
     parcels_data = load_geojson(parcels_path)
 
     print(f"Loaded {len(bldgs_data['features'])} buildings and {len(parcels_data['features'])} parcels.")
-    print("Projecting geometries to EPSG:32643 (UTM 43N) for accurate metric area calculation...")
+    print(f"Projecting geometries to {CRS_PROCESSING} for accurate metric area calculation...")
 
-    # Setup projector EPSG:4326 (Lon/Lat) -> EPSG:32643 (UTM 43N metric)
-    project_to_utm = pyproj.Transformer.from_crs("EPSG:4326", "EPSG:32643", always_xy=True).transform
+    # Setup projector
+    project_to_utm = pyproj.Transformer.from_crs(CRS_SOURCE, CRS_PROCESSING, always_xy=True).transform
 
     # Pre-process parcels
     parcel_shapes = []
