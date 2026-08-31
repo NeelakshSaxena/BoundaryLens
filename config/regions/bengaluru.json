@@ -1,0 +1,28 @@
+{
+    "region_name": "Bengaluru Urban",
+    "state": "Karnataka",
+    "district": "Bengaluru",
+    "bbox": [77.61365, 12.92365, 77.62635, 12.93635],
+    "crs_source": "EPSG:4326",
+    "crs_processing": "EPSG:32643",
+    "datasets": {
+        "cadastral": {
+            "source_name": "OpenCity",
+            "type": "vector",
+            "url": "https://data.opencity.in/dataset/b5d91825-a104-41c8-bf93-3aedcfd58124/resource/3975e8d0-9a23-4b4b-a3c9-9453979406e4/download/038b4a89-98c8-49f7-aa1a-b3d073745d0b.kmz",
+            "description": "Bengaluru OpenCity Cadastral kmz dataset"
+        },
+        "buildings": {
+            "source_name": "OSM",
+            "type": "vector",
+            "url": "overpass",
+            "description": "OpenStreetMap footprints"
+        },
+        "elevation": {
+            "source_name": "Copernicus_GLO30",
+            "type": "raster",
+            "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N12_00_E077_00_DEM/Copernicus_DSM_COG_10_N12_00_E077_00_DEM.tif",
+            "description": "Global DEM"
+        }
+    }
+}

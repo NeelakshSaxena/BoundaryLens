@@ -36,14 +36,30 @@ def main():
     for b in features:
         props = b["properties"]
         overlap = float(props.get("parcel_overlap_ratio", 1.0))
-        height = float(props.get("building_height_m", 3.5))
+        
+        height_val = props.get("building_height_m")
+        try:
+            height = float(height_val)
+        except (TypeError, ValueError):
+            height = np.nan
+        
         elev = float(props.get("ground_elevation_m", 896.0))
-        floors = float(props.get("derived_floors", 1))
+        
+        floors_val = props.get("derived_floors")
+        try:
+            floors = float(floors_val)
+        except (TypeError, ValueError):
+            floors = np.nan
         
         # Add non-linear interaction feature (height per floor ratio anomaly)
         X.append([overlap, height, elev, floors])
 
     X = np.array(X)
+    
+    # Impute missing heights/floors gracefully for the ML model without injecting fake data into the ledger
+    from sklearn.impute import SimpleImputer
+    imputer = SimpleImputer(strategy='median')
+    X = imputer.fit_transform(X)
 
     # Train Isolation Forest (3% contamination target for top spatial/vertical outliers)
     clf = IsolationForest(contamination=0.03, random_state=42)

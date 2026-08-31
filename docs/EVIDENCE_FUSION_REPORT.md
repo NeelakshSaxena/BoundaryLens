@@ -5,8 +5,8 @@ In strict compliance with **Project Rule 3** (Evidence Hierarchy) and **Project 
 
 ## 1. Final Verification Gate Summary
 - **Total Buildings Evaluated**: 2734
-- **🟢 VERIFIED** (100% Contained & AI Approved): 2326 (85.1%)
-- **🟡 PROVISIONAL** (Majority Overlap & AI Approved): 326 (11.9%)
+- **🟢 VERIFIED** (100% Contained & AI Approved): 2320 (84.9%)
+- **🟡 PROVISIONAL** (Majority Overlap & AI Approved): 332 (12.1%)
 - **🔴 HUMAN VERIFICATION REQUIRED** (Boundary Encroachments or AI Outliers): 82 (3.0%)
 
 ## 2. Evidence Lineage Schema

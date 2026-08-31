@@ -3,9 +3,16 @@ import json
 import zipfile
 import xml.etree.ElementTree as ET
 
-# Target AOI BBox coordinates from 01_select_aoi.py
-LAT_MIN, LAT_MAX = 12.92365, 12.93635
-LON_MIN, LON_MAX = 77.61365, 77.62635
+import sys
+
+# Ensure config module can be imported
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from config.config_loader import get_active_config
+
+config = get_active_config()
+LON_MIN, LAT_MIN, LON_MAX, LAT_MAX = config["bbox"]
+REGION_NAME = config["region_name"]
+CRS_SOURCE = config.get("crs_source", "EPSG:4326")
 
 def is_point_in_aoi(lon, lat):
     return LON_MIN <= lon <= LON_MAX and LAT_MIN <= lat <= LAT_MAX
@@ -105,8 +112,16 @@ def normalise_osm():
     print(f"Saved to {out_path}\n")
 
 def normalise_cadastral():
-    print("--- 2. Normalising OpenCity Cadastral Parcels ---")
-    raw_path = os.path.join("data", "raw", "bengaluru_cadastral.kmz")
+    print(f"--- 2. Normalising {config['datasets']['cadastral']['source_name']} Cadastral Parcels ---")
+    
+    # We construct the expected file name from load_cadastral.py
+    cadastral_filename = f"{REGION_NAME.lower().replace(' ', '_')}_cadastral.kmz"
+    raw_path = os.path.join("data", "raw", cadastral_filename)
+    
+    # Fallback to the old name if the new dynamic one doesn't exist yet (for transition)
+    if not os.path.exists(raw_path):
+        raw_path = os.path.join("data", "raw", "bengaluru_cadastral.kmz")
+
     out_path = os.path.join("data", "interim", "cadastral_parcels_normalised.geojson")
 
     if not os.path.exists(raw_path):
@@ -191,46 +206,73 @@ def normalise_cadastral():
     print(f"Normalised & clipped {parcel_count} cadastral parcels inside AOI.")
     print(f"Saved to {out_path}\n")
 
-def normalise_dem():
-    print("--- 3. Normalising DEM Raster ---")
-    raw_path = os.path.join("data", "raw", "copernicus_dem_glo30.tif")
-    out_path = os.path.join("data", "interim", "dem_normalised.tif")
+def normalise_elevation_rasters():
+    print("--- 3. Normalising Elevation Rasters (DSM & DEM) ---")
     
-    if not os.path.exists(raw_path):
-        print(f"Error: Raw DEM {raw_path} not found.")
+    dsm_raw_path = os.path.join("data", "raw", "copernicus_dem_glo30.tif")
+    dem_raw_path = os.path.join("data", "raw", "bare_earth_dem.tif")
+    
+    dsm_aligned_path = os.path.join("data", "interim", "dsm_aligned.tif")
+    dem_aligned_path = os.path.join("data", "interim", "dem_aligned.tif")
+    
+    if not os.path.exists(dsm_raw_path) or not os.path.exists(dem_raw_path):
+        print(f"Error: Missing one or both raw rasters (DSM: {os.path.exists(dsm_raw_path)}, DEM: {os.path.exists(dem_raw_path)}).")
         return
 
     try:
         import rasterio
         from rasterio.mask import mask
         from shapely.geometry import box
+        from rasterio.enums import Resampling
+        from rasterio.warp import calculate_default_transform, reproject
         
         aoi_polygon = [box(LON_MIN, LAT_MIN, LON_MAX, LAT_MAX)]
         
-        with rasterio.open(raw_path) as src:
-            out_image, out_transform = mask(src, aoi_polygon, crop=True)
-            out_meta = src.meta.copy()
+        # 1. Process DSM (Master Grid)
+        with rasterio.open(dsm_raw_path) as src_dsm:
+            dsm_image, dsm_transform = mask(src_dsm, aoi_polygon, crop=True)
+            dsm_meta = src_dsm.meta.copy()
             
-            out_meta.update({
+            dsm_meta.update({
                 "driver": "GTiff",
-                "height": out_image.shape[1],
-                "width": out_image.shape[2],
-                "transform": out_transform,
+                "height": dsm_image.shape[1],
+                "width": dsm_image.shape[2],
+                "transform": dsm_transform,
                 "crs": "EPSG:4326"
             })
             
-            os.makedirs(os.path.dirname(out_path), exist_ok=True)
-            with open(out_path, "wb") as f:
-                with rasterio.open(out_path, "w", **out_meta) as dest:
-                    dest.write(out_image)
-                    
-        print(f"Cropped DEM raster to AOI BBox and saved to {out_path}\n")
+            os.makedirs(os.path.dirname(dsm_aligned_path), exist_ok=True)
+            with rasterio.open(dsm_aligned_path, "w", **dsm_meta) as dest_dsm:
+                dest_dsm.write(dsm_image)
+        
+        print(f"Cropped DSM raster saved to {dsm_aligned_path}")
+        
+        # 2. Process DEM (Slave Grid) - Reproject & Align to match Master Grid exactly
+        with rasterio.open(dem_raw_path) as src_dem:
+            dem_image, dem_transform = mask(src_dem, aoi_polygon, crop=True)
+            
+            # Create empty array matching DSM dimensions exactly
+            aligned_dem = rasterio.Band(src_dem, 1) # dummy, we'll reproject into a numpy array
+            import numpy as np
+            dem_reprojected = np.empty((1, dsm_meta['height'], dsm_meta['width']), dtype=src_dem.dtypes[0])
+            
+            reproject(
+                source=dem_image,
+                destination=dem_reprojected,
+                src_transform=dem_transform,
+                src_crs=src_dem.crs,
+                dst_transform=dsm_meta['transform'],
+                dst_crs=dsm_meta['crs'],
+                resampling=Resampling.bilinear
+            )
+            
+            with rasterio.open(dem_aligned_path, "w", **dsm_meta) as dest_dem:
+                dest_dem.write(dem_reprojected)
+                
+        print(f"Cropped and aligned DEM raster saved to {dem_aligned_path}\n")
+        
     except ImportError:
-        print("rasterio package not installed. Creating normalized DEM file reference.")
-        import shutil
-        os.makedirs(os.path.dirname(out_path), exist_ok=True)
-        shutil.copyfile(raw_path, out_path)
-        print(f"Saved DEM reference to {out_path}\n")
+        print("rasterio package not installed. Skipping raster alignment.")
 
 def main():
     print("=========================================")
@@ -238,7 +280,7 @@ def main():
     print("=========================================\n")
     normalise_osm()
     normalise_cadastral()
-    normalise_dem()
+    normalise_elevation_rasters()
     print("Phase 3 Normalisation complete!")
 
 if __name__ == "__main__":

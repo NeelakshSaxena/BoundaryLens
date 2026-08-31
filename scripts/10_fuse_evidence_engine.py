@@ -52,30 +52,38 @@ def main():
         # Create immutable provenance ledger entry for auditability
         ledger[b_id] = {
             "building_id": b_id,
+            "footprint_source": props.get("source", "OSM"),
             "final_verification_status": final_status,
+            "height": {
+                "value": props.get("building_height_m"),
+                "method": props.get("height_source", "NOT_DETERMINABLE"),
+                "type": "EXACT" if props.get("3d_representation_status") == "EXACT STRUCTURED 3D" else "HEIGHT_RELATED_SIGNAL" if props.get("3d_representation_status") == "HEIGHT-DERIVED MASS" else "UNAVAILABLE",
+                "statistics": {
+                    "valid_pixels": props.get("valid_pixels"),
+                    "p50_median": props.get("height_p50"),
+                    "p90": props.get("height_p90"),
+                    "std_dev": props.get("height_std")
+                },
+                "ground_elevation": props.get("ground_elevation_m")
+            },
+            "floor_count": {
+                "value": props.get("derived_floors") if isinstance(props.get("derived_floors"), int) else None,
+                "status": "VERIFIED" if isinstance(props.get("derived_floors"), int) else "NOT_DETERMINABLE"
+            },
+            "representation": {
+                "type": props.get("3d_representation_status", "NOT_DETERMINABLE"),
+                "status": "APPROXIMATE" if props.get("3d_representation_status") == "HEIGHT-DERIVED MASS" else "EXACT" if props.get("3d_representation_status") == "EXACT STRUCTURED 3D" else "NONE"
+            },
             "evidence_lineage": {
                 "2d_spatial_linkage": {
                     "parcel_id": props.get("linked_parcel_id"),
                     "overlap_ratio": props.get("parcel_overlap_ratio"),
                     "match_status": match_status_2d,
-                    "provenance": "OPENCITY_CADASTRAL_INTERSECTION",
                     "confidence": "HIGH" if match_status_2d == "CONTAINED" else "MEDIUM"
-                },
-                "elevation_base": {
-                    "ground_elevation_m": props.get("ground_elevation_m"),
-                    "provenance": "COPERNICUS_GLO30_DEM",
-                    "confidence": "HIGH"
-                },
-                "vertical_height": {
-                    "height_m": props.get("building_height_m"),
-                    "derived_floors": props.get("derived_floors"),
-                    "provenance": props.get("height_source", "GOOGLE_OPEN_BUILDINGS_2.5D"),
-                    "confidence": props.get("height_confidence", "MEDIUM")
                 },
                 "ai_anomaly_inspection": {
                     "flagged": ai_anomaly,
                     "anomaly_score": ai_score,
-                    "model": "SKLEARN_ISOLATION_FOREST_4D",
                     "provenance": "AI_SURFACE_INSPECTION"
                 }
             }
