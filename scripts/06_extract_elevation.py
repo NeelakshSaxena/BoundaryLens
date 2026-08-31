@@ -125,12 +125,16 @@ def main():
             interior_wgs = transform(project_to_wgs, interior_utm)
             
             try:
-                # Mask normalized height raster
-                bldg_image, _ = mask(norm_src, [interior_wgs], crop=True, filled=True)
-                valid_pixels = bldg_image[(bldg_image != norm_nodata) & (~np.isnan(bldg_image))]
+                # Mask normalized height raster (Strict - 30m resolution simulation)
+                bldg_image_strict, _ = mask(norm_src, [interior_wgs], crop=True, filled=True, all_touched=False)
+                valid_pixels_strict = bldg_image_strict[(bldg_image_strict != norm_nodata) & (~np.isnan(bldg_image_strict))]
+                
+                # Mask normalized height raster (Relaxed - 1m High-Res simulation using all_touched)
+                bldg_image_sim, _ = mask(norm_src, [interior_wgs], crop=True, filled=True, all_touched=True)
+                valid_pixels_sim = bldg_image_sim[(bldg_image_sim != norm_nodata) & (~np.isnan(bldg_image_sim))]
                 
                 # Mask bare earth DEM for ground elevation reference
-                dem_image, _ = mask(dem_src, [geom], crop=True, filled=True)
+                dem_image, _ = mask(dem_src, [geom], crop=True, filled=True, all_touched=True)
                 valid_dem = dem_image[(dem_image != dem_src.nodata) & (~np.isnan(dem_image))]
                 
                 if len(valid_dem) > 0:
@@ -138,15 +142,11 @@ def main():
                 else:
                     b["properties"]["ground_elevation_m"] = None
                 
-                if len(valid_pixels) > 0:
-                    p90_height = float(np.percentile(valid_pixels, 90))
-                    p50_height = float(np.median(valid_pixels))
-                    std_height = float(np.std(valid_pixels))
+                # STRICT HEIGHT (Default 30m)
+                if len(valid_pixels_strict) > 0:
+                    p90_height = float(np.percentile(valid_pixels_strict, 90))
                     
-                    b["properties"]["valid_pixels"] = len(valid_pixels)
-                    b["properties"]["height_p50"] = round(p50_height, 2)
-                    b["properties"]["height_p90"] = round(p90_height, 2)
-                    b["properties"]["height_std"] = round(std_height, 2)
+                    b["properties"]["valid_pixels"] = len(valid_pixels_strict)
                     
                     # Requirement #11: Sanity Checks
                     if p90_height < 2.0 or p90_height > 200:
@@ -159,6 +159,16 @@ def main():
                 else:
                     b["properties"]["dsm_derived_height_m"] = None
                     stats["NOT_DETERMINABLE_heights"] += 1
+                    
+                # SIMULATED HIGH-RES HEIGHT (Relaxed all_touched=True)
+                if len(valid_pixels_sim) > 0:
+                    p90_sim = float(np.percentile(valid_pixels_sim, 90))
+                    if 2.0 <= p90_sim <= 200:
+                        b["properties"]["dsm_derived_height_m_simulated"] = round(p90_sim, 2)
+                    else:
+                        b["properties"]["dsm_derived_height_m_simulated"] = None
+                else:
+                    b["properties"]["dsm_derived_height_m_simulated"] = None
                     
             except Exception as e:
                 b["properties"]["dsm_derived_height_m"] = None

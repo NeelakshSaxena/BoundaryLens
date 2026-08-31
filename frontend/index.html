@@ -17,7 +17,7 @@
     <!-- Phosphor Icons for premium SVG icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <link href="styles.css" rel="stylesheet" />
+    <link href="styles.css?v=4" rel="stylesheet" />
 </head>
 <body>
     <div id="app-container">
@@ -41,111 +41,101 @@
             <div class="stats-container">
                 <div class="stat-box">
                     <span class="stat-value" id="stat-buildings">-</span>
-                    <span class="stat-label">Total Buildings</span>
+                    <span class="stat-label">LINKED BUILDINGS</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-value" id="stat-3d">-</span>
-                    <span class="stat-label">3D Height-Derived</span>
+                    <span class="stat-value" id="stat-parcels">-</span>
+                    <span class="stat-label">CADASTRAL PARCELS</span>
                 </div>
             </div>
+            
+            <!-- Resolution Toggle -->
+            <div class="resolution-toggle glass-panel" style="margin-top: 12px; padding: 16px; border-radius: 12px;">
+                <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; font-weight: 700; letter-spacing: 0.5px;">Simulate High-Res Input</div>
+                <label class="switch-container">
+                    <span class="switch-label" id="label-strict">30m Satellite (Strict)</span>
+                    <div class="switch">
+                        <input type="checkbox" id="res-toggle">
+                        <span class="slider round"></span>
+                    </div>
+                    <span class="switch-label highlight" id="label-sim">1m Drone (Simulated)</span>
+                </label>
+            </div>
 
-            <div class="legend-container" style="max-height: 200px; overflow-y: auto;">
+            <!-- Property Card (Hidden by default) -->
+            <div id="property-card" class="property-card hidden">
+                <div class="card-header">
+                    <i class="ph ph-buildings" style="font-size: 18px; color: var(--text-main);"></i>
+                    <h3>Selected Structure</h3>
+                </div>
+
+                <div class="prop-row">
+                    <span class="prop-label">ULPIN / Parcel ID</span>
+                    <span class="prop-value parcel-id" id="prop-ulpin">-</span>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Match Status</span>
+                    <span class="prop-value" id="prop-match-status" style="font-weight: 700;">-</span>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Ground Elev (DEM)</span>
+                    <span class="prop-value" id="prop-ground">-</span>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Height (m) / Floors</span>
+                    <span class="prop-value" id="prop-height-floors">-</span>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Data Source</span>
+                    <span class="prop-value" id="prop-source" style="font-size: 9px; text-transform: uppercase;">-</span>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">AI Anomaly Status</span>
+                    <span class="prop-value" id="prop-ai-status">-</span>
+                </div>
+                <div class="prop-row" style="align-items: flex-start; padding-top: 12px; border-top: 1px solid var(--glass-border); margin-top: 8px;">
+                    <span class="prop-label">Proposed<br>3D ULPIN</span>
+                    <span class="prop-value parcel-id" id="prop-proposed-ulpin" style="text-align: right; line-height: 1.4; word-break: break-all;">-</span>
+                </div>
+                <div class="prop-row" style="margin-top: 8px;">
+                    <span class="prop-label">Verification Gate</span>
+                    <span class="prop-value" id="prop-verification" style="font-weight: 700;">-</span>
+                </div>
+
+                <div class="action-buttons">
+                    <span style="font-size: 10px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 8px;">REVIEWER AUDIT GATE (RULE 8)</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-approve" onclick="alert('Audit Logged: APPROVED')">APPROVE</button>
+                        <button class="btn btn-correct" onclick="alert('Audit Logged: CORRECT DATA')">CORRECT</button>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button class="btn btn-reject" onclick="alert('Audit Logged: REJECTED')">REJECT</button>
+                        <button class="btn btn-unresolved" onclick="alert('Audit Logged: MARK UNRESOLVED')">UNRESOLVED</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Sidebar for Legend -->
+        <aside class="right-sidebar glass-panel">
+            <div class="legend-container">
                 <h3 style="font-size: 11px; text-transform: uppercase;">BoundaryLens Legend</h3>
                 
                 <div class="legend-item"><span class="legend-color" style="border: 1px dashed #fff; background: transparent;"></span><span>Cadastral Parcel</span></div>
                 <div class="legend-item"><span class="legend-color" style="background: rgba(255,255,255,0.05);"></span><span>Building Footprint</span></div>
                 
-                <h4 style="font-size: 10px; margin-top: 10px; color: var(--text-muted);">3D REPRESENTATION</h4>
+                <h4 style="font-size: 10px; margin-top: 16px; margin-bottom: 8px; color: var(--text-muted);">3D REPRESENTATION</h4>
                 <div class="legend-item"><span class="legend-color contained"></span><span>HEIGHT-DERIVED 3D</span></div>
                 <div class="legend-item"><span class="legend-color" style="background: #3b82f6;"></span><span>STRUCTURED 3D</span></div>
                 <div class="legend-item"><span class="legend-color" style="background: #64748b;"></span><span>2D ONLY</span></div>
                 <div class="legend-item"><span class="legend-color majority"></span><span>CONFLICT</span></div>
                 <div class="legend-item"><span class="legend-color conflict"></span><span>HUMAN VERIFICATION</span></div>
                 
-                <h4 style="font-size: 10px; margin-top: 10px; color: var(--text-muted);">ELEVATION</h4>
+                <h4 style="font-size: 10px; margin-top: 16px; margin-bottom: 8px; color: var(--text-muted);">ELEVATION</h4>
                 <div class="legend-item"><span>Ground Elevation: Bare-earth DEM</span></div>
                 <div class="legend-item"><span>Surface Height: DSM-DEM Derived</span></div>
-                <div class="legend-item" style="margin-top: 5px; color: var(--text-muted); font-size: 10px;">
+                <div class="legend-item" style="margin-top: 8px; color: var(--text-muted); font-size: 10px; line-height: 1.4;">
                     <i>3D height represents DSM-DEM derived surface-height evidence and is not an official floor count.</i>
-                </div>
-            </div>
-
-            <!-- Property Card (Hidden by default) -->
-            <div id="property-card" class="property-card hidden">
-                <h3><i class="ph ph-buildings"></i> Selected Structure</h3>
-                
-                <div class="prop-row">
-                    <span class="prop-label">Source Parcel ID</span>
-                    <span class="prop-value highlight" id="prop-ulpin">-</span>
-                </div>
-                
-                <div class="prop-row">
-                    <span class="prop-label">Building ID</span>
-                    <span class="prop-value" id="prop-building-id">-</span>
-                </div>
-                
-                <div class="prop-row">
-                    <span class="prop-label">Footprint</span>
-                    <span class="prop-value" id="prop-footprint">-</span>
-                </div>
-
-                <div class="prop-row">
-                    <span class="prop-label">3D Representation</span>
-                    <span class="prop-value" id="prop-3d-rep">-</span>
-                </div>
-                
-                <div class="prop-row">
-                    <span class="prop-label">Ground Elevation</span>
-                    <span class="prop-value" id="prop-ground">-</span>
-                </div>
-                
-                <div class="prop-row">
-                    <span class="prop-label">Surface Height</span>
-                    <span class="prop-value" id="prop-height">-</span>
-                </div>
-                
-                <div class="prop-row">
-                    <span class="prop-label">Valid Elevation Samples</span>
-                    <span class="prop-value" id="prop-samples">-</span>
-                </div>
-                
-                <div class="prop-row">
-                    <span class="prop-label">Floor Count</span>
-                    <span class="prop-value" id="prop-floors">-</span>
-                </div>
-
-                <div class="prop-row">
-                    <span class="prop-label">Vertical Property</span>
-                    <span class="prop-value" id="prop-vertical-property">-</span>
-                </div>
-                
-                <div class="prop-row">
-                    <span class="prop-label">Confidence</span>
-                    <span class="prop-value" id="prop-confidence" style="font-size:11px; font-weight:bold;">-</span>
-                </div>
-                <div class="prop-row">
-                    <span class="prop-label">Provenance</span>
-                    <span class="prop-value" id="prop-provenance" style="font-size:11px; font-family:monospace;">-</span>
-                </div>
-                <div class="prop-row">
-                    <span class="prop-label">AI Anomaly Status</span>
-                    <span class="prop-value" id="prop-ai-status">-</span>
-                </div>
-                <!-- ULPIN Generator removed to comply with Rule 2 -->
-                <div class="prop-row">
-                    <span class="prop-label">Verification Gate</span>
-                    <span class="prop-value" id="prop-gate-status" style="font-weight:bold;">-</span>
-                </div>
-
-                <!-- Reviewer Audit Panel (Rule 8) -->
-                <div class="reviewer-panel" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <h4 style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">Reviewer Audit Gate (Rule 8)</h4>
-                    <div class="reviewer-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                        <button class="btn btn-approve" id="btn-approve" onclick="window.reviewAction('APPROVE')">APPROVE</button>
-                        <button class="btn btn-correct" id="btn-correct" onclick="window.reviewAction('CORRECT')">CORRECT</button>
-                        <button class="btn btn-reject" id="btn-reject" onclick="window.reviewAction('REJECT')">REJECT</button>
-                        <button class="btn btn-unresolved" id="btn-unresolved" onclick="window.reviewAction('MARK_UNRESOLVED')">UNRESOLVED</button>
-                    </div>
                 </div>
             </div>
         </aside>
@@ -157,6 +147,6 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>

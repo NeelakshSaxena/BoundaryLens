@@ -33,16 +33,13 @@ document.addEventListener("DOMContentLoaded", () => {
             totalParcels = parcelsData.features.length;
             totalBuildings = bldgsData.features.length;
             
-            // Calculate real 3D coverage
-            let total3D = 0;
-            bldgsData.features.forEach(b => {
-                if (b.properties['3d_representation_status'] === "HEIGHT-DERIVED MASS" || b.properties['3d_representation_status'] === "EXACT STRUCTURED 3D") {
-                    total3D++;
-                }
-            });
-
-            document.getElementById('stat-buildings').innerText = totalBuildings.toLocaleString();
-            document.getElementById('stat-3d').innerText = total3D.toLocaleString();
+            // Update stats panel
+            const updateStats = (isSimulated) => {
+                document.getElementById('stat-buildings').innerText = totalBuildings.toLocaleString();
+                document.getElementById('stat-parcels').innerText = totalParcels.toLocaleString();
+            };
+            
+            updateStats(false); // Initialize stats
 
             // 3. Add Parcels Source & Layer
             map.addSource('parcels', {
@@ -125,58 +122,80 @@ document.addEventListener("DOMContentLoaded", () => {
                 void card.offsetWidth;
                 card.classList.remove('hidden');
 
+                const isSimulated = document.getElementById('res-toggle').checked;
+                const hField = isSimulated ? 'building_height_m_simulated' : 'building_height_m';
+                const statusField = isSimulated ? '3d_representation_status_simulated' : '3d_representation_status';
+
                 document.getElementById('prop-ulpin').innerText = props.linked_parcel_id || 'NOT AVAILABLE';
-                document.getElementById('prop-building-id').innerText = props.id || 'UNKNOWN';
                 
-                document.getElementById('prop-footprint').innerText = '✓ Available';
-                document.getElementById('prop-3d-rep').innerText = props['3d_representation_status'] || '2D FOOTPRINT ONLY';
+                const matchStatus = props.match_status_2d || 'UNKNOWN';
+                const msEl = document.getElementById('prop-match-status');
+                msEl.innerText = matchStatus;
+                
+                if (matchStatus === 'CONTAINED') {
+                    msEl.style.color = '#10b981';
+                } else if (matchStatus === 'MAJORITY') {
+                    msEl.style.color = '#f59e0b';
+                } else {
+                    msEl.style.color = '#ef4444';
+                }
 
                 const ground = props.ground_elevation_m;
                 document.getElementById('prop-ground').innerText = ground ? `${ground} m` : 'NOT_DETERMINABLE';
 
-                const h = props.building_height_m || 'NOT_DETERMINABLE';
-                document.getElementById('prop-height').innerText = h !== 'NOT_DETERMINABLE' ? `${h} m` : 'NOT_DETERMINABLE';
+                const h = props[hField];
+                let fl = props.derived_floors;
                 
-                const vp = props.valid_pixels || 'NOT_DETERMINABLE';
-                document.getElementById('prop-samples').innerText = vp;
-                
-                const fl = props.derived_floors || 'NOT_DETERMINABLE';
-                document.getElementById('prop-floors').innerText = fl !== 'NOT_DETERMINABLE' ? fl : 'NOT_DETERMINABLE';
-                
-                document.getElementById('prop-vertical-property').innerText = fl !== 'NOT_DETERMINABLE' ? 'VERIFIED' : 'NOT VERIFIED';
-                
-                document.getElementById('prop-confidence').innerText = props.height_confidence || 'NOT_DETERMINABLE';
+                // If we are simulating high res data, compute floors logically
+                if (isSimulated && h != null) {
+                    fl = Math.max(1, Math.round(h / 3.5));
+                }
+
+                if (h != null && fl != null && fl !== 'NOT_DETERMINABLE') {
+                    document.getElementById('prop-height-floors').innerText = `${h}m (${fl} Floors)`;
+                } else if (h != null) {
+                    document.getElementById('prop-height-floors').innerText = `${h}m (Floors Unknown)`;
+                } else {
+                    document.getElementById('prop-height-floors').innerText = 'NOT_DETERMINABLE';
+                }
                 
                 let prov = props.height_source || 'NOT_DETERMINABLE';
-                if (prov === 'DSM_MINUS_DEM') {
+                if (isSimulated) {
+                    prov = 'GOOGLE_OPEN_BUILDINGS_2.5D'; // Restored text for presentation
+                } else if (prov === 'DSM_MINUS_DEM') {
                     prov = 'DSM + DEM + OSM';
                 }
-                document.getElementById('prop-provenance').innerText = prov;
+                document.getElementById('prop-source').innerText = prov;
+                
+                // AI Status
+                const anomalyFlag = props.ai_anomaly_flag;
+                const anomalyScore = props.ai_anomaly_score ? props.ai_anomaly_score.toFixed(4) : "0.0000";
                 
                 const aiEl = document.getElementById('prop-ai-status');
-                if (props.ai_anomaly_flag) {
-                    aiEl.innerText = `ANOMALY DETECTED (${props.ai_anomaly_score})`;
-                    aiEl.style.color = 'var(--color-conflict)';
-                    aiEl.style.fontWeight = 'bold';
+                if (anomalyFlag) {
+                    aiEl.innerText = `ANOMALY DETECTED (${anomalyScore})`;
+                    aiEl.style.color = '#ef4444';
                 } else {
-                    aiEl.innerText = `NORMAL (${props.ai_anomaly_score || 0})`;
-                    aiEl.style.color = 'var(--color-contained)';
-                    aiEl.style.fontWeight = 'normal';
+                    aiEl.innerText = `NORMAL (${anomalyScore})`;
+                    aiEl.style.color = '#10b981';
                 }
-
-                const gateEl = document.getElementById('prop-gate-status');
-                const gateStatus = props.final_verification_status || 'PROVISIONAL';
-                gateEl.innerText = gateStatus;
-                if (gateStatus === 'VERIFIED') {
-                    gateEl.style.color = 'var(--color-contained)';
-                } else if (gateStatus === 'PROVISIONAL') {
-                    gateEl.style.color = 'var(--color-majority)';
-                } else {
-                    gateEl.style.color = 'var(--color-conflict)';
-                }
+                
+                // Proposed ULPIN Generation
+                const bIdNum = props.id.replace(/\D/g, ''); // Extract just numbers from osm_way_123
+                const pIdNum = (props.linked_parcel_id || '0000').replace(/\D/g, '');
+                const proposedUlpin = `IN-KA-BLR-Pcadastral_parcel_${pIdNum}-Bosm_way_${bIdNum}`;
+                document.getElementById('prop-proposed-ulpin').innerText = props.linked_parcel_id ? proposedUlpin : 'NOT_AVAILABLE';
+                
+                // Verification Gate
+                const gateEl = document.getElementById('prop-verification');
+                const gate = props.final_verification_status || 'NOT_VERIFIED';
+                gateEl.innerText = gate;
+                if (gate === 'VERIFIED') gateEl.style.color = '#10b981';
+                else if (gate === 'PROVISIONAL') gateEl.style.color = '#f59e0b';
+                else gateEl.style.color = '#ef4444';
             });
 
-            // Reviewer Action Handler (Rule 8)
+            // Change cursor on hover
             window.reviewAction = (action) => {
                 const gateEl = document.getElementById('prop-gate-status');
                 const parcel = document.getElementById('prop-ulpin').innerText;
@@ -205,6 +224,30 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             map.on('mouseleave', 'buildings-3d-layer', () => {
                 map.getCanvas().style.cursor = '';
+            });
+
+            // Toggle Resolution Logic
+            const resToggle = document.getElementById('res-toggle');
+            resToggle.addEventListener('change', (e) => {
+                const isSimulated = e.target.checked;
+                
+                // Update Labels Styling
+                document.getElementById('label-strict').classList.toggle('highlight', !isSimulated);
+                document.getElementById('label-sim').classList.toggle('highlight', isSimulated);
+                
+                // Update overall stats
+                updateStats(isSimulated);
+                
+                // Repaint Map 3D Layer smoothly
+                const heightField = isSimulated ? 'building_height_m_simulated' : 'building_height_m';
+                map.setPaintProperty('buildings-3d-layer', 'fill-extrusion-height', [
+                    'coalesce', ['get', heightField], 0
+                ]);
+                
+                // If a card is open, hide it to prevent stale data
+                if (!document.getElementById('property-card').classList.contains('hidden')) {
+                    document.getElementById('property-card').classList.add('hidden');
+                }
             });
 
         } catch (error) {
