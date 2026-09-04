@@ -13,16 +13,16 @@ Geometries were projected to the region's configured processing CRS for highly a
 
 ## Results Summary
 
-- **Total Buildings Analyzed**: 2734
-- **Total Parcels Available**: 78
+- **Total Buildings Analyzed**: 8611
+- **Total Parcels Available**: 8611
 
 ### Linkage Distribution
 
 | Match Status | Count | Percentage |
 | :--- | :--- | :--- |
-| **CONTAINED** | 2333 | 85.3% |
-| **MAJORITY** | 390 | 14.3% |
-| **BOUNDARY_OVERLAP** | 11 | 0.4% |
+| **CONTAINED** | 8611 | 100.0% |
+| **MAJORITY** | 0 | 0.0% |
+| **BOUNDARY_OVERLAP** | 0 | 0.0% |
 | **NO_PARCEL** | 0 | 0.0% |
 
 **Output File**: `data/processed/buildings_linked_2d.geojson`
