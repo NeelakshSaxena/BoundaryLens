@@ -55,6 +55,10 @@ def load_google_buildings():
     os.makedirs(out_dir, exist_ok=True)
     out_raster_path = os.path.join(out_dir, "google_open_buildings_25d_height.tif")
     
+    if os.path.exists(out_raster_path):
+        print(f"File {out_raster_path} already exists. Skipping download.")
+        return
+    
     print(f"Downloading Height Raster to {out_raster_path}...")
     try:
         geemap.ee_export_image(height_raster, filename=out_raster_path, scale=4, region=aoi, file_per_band=False)

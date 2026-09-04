@@ -1,29 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BoundaryLens | SIH26011</title>
-    
+
     <!-- MapLibre GL JS -->
     <script src="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.css" rel="stylesheet" />
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Phosphor Icons for premium SVG icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <link href="styles.css?v=4" rel="stylesheet" />
 </head>
+
 <body>
     <div id="app-container">
         <!-- Map Container -->
         <div id="map"></div>
-        
+
         <!-- Sidebar UI -->
         <aside class="sidebar glass-panel">
             <header class="sidebar-header">
@@ -48,10 +50,12 @@
                     <span class="stat-label">CADASTRAL PARCELS</span>
                 </div>
             </div>
-            
+
             <!-- Resolution Toggle -->
             <div class="resolution-toggle glass-panel" style="margin-top: 12px; padding: 16px; border-radius: 12px;">
-                <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; font-weight: 700; letter-spacing: 0.5px;">Simulate High-Res Input</div>
+                <div
+                    style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; font-weight: 700; letter-spacing: 0.5px;">
+                    Simulate High-Res Input</div>
                 <label class="switch-container">
                     <span class="switch-label" id="label-strict">30m Satellite (Strict)</span>
                     <div class="switch">
@@ -87,15 +91,18 @@
                 </div>
                 <div class="prop-row">
                     <span class="prop-label">Data Source</span>
-                    <span class="prop-value" id="prop-source" style="font-size: 9px; text-transform: uppercase;">-</span>
+                    <span class="prop-value" id="prop-source"
+                        style="font-size: 9px; text-transform: uppercase;">-</span>
                 </div>
                 <div class="prop-row">
                     <span class="prop-label">AI Anomaly Status</span>
                     <span class="prop-value" id="prop-ai-status">-</span>
                 </div>
-                <div class="prop-row" style="align-items: flex-start; padding-top: 12px; border-top: 1px solid var(--glass-border); margin-top: 8px;">
+                <div class="prop-row"
+                    style="align-items: flex-start; padding-top: 12px; border-top: 1px solid var(--glass-border); margin-top: 8px;">
                     <span class="prop-label">Proposed<br>3D ULPIN</span>
-                    <span class="prop-value parcel-id" id="prop-proposed-ulpin" style="text-align: right; line-height: 1.4; word-break: break-all;">-</span>
+                    <span class="prop-value parcel-id" id="prop-proposed-ulpin"
+                        style="text-align: right; line-height: 1.4; word-break: break-all;">-</span>
                 </div>
                 <div class="prop-row" style="margin-top: 8px;">
                     <span class="prop-label">Verification Gate</span>
@@ -103,14 +110,17 @@
                 </div>
 
                 <div class="action-buttons">
-                    <span style="font-size: 10px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 8px;">REVIEWER AUDIT GATE (RULE 8)</span>
+                    <span
+                        style="font-size: 10px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 8px;">REVIEWER
+                        AUDIT GATE (RULE 8)</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-approve" onclick="alert('Audit Logged: APPROVED')">APPROVE</button>
                         <button class="btn btn-correct" onclick="alert('Audit Logged: CORRECT DATA')">CORRECT</button>
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 8px;">
                         <button class="btn btn-reject" onclick="alert('Audit Logged: REJECTED')">REJECT</button>
-                        <button class="btn btn-unresolved" onclick="alert('Audit Logged: MARK UNRESOLVED')">UNRESOLVED</button>
+                        <button class="btn btn-unresolved"
+                            onclick="alert('Audit Logged: MARK UNRESOLVED')">UNRESOLVED</button>
                     </div>
                 </div>
             </div>
@@ -120,22 +130,33 @@
         <aside class="right-sidebar glass-panel">
             <div class="legend-container">
                 <h3 style="font-size: 11px; text-transform: uppercase;">BoundaryLens Legend</h3>
-                
-                <div class="legend-item"><span class="legend-color" style="border: 1px dashed #fff; background: transparent;"></span><span>Cadastral Parcel</span></div>
-                <div class="legend-item"><span class="legend-color" style="background: rgba(255,255,255,0.05);"></span><span>Building Footprint</span></div>
-                
-                <h4 style="font-size: 10px; margin-top: 16px; margin-bottom: 8px; color: var(--text-muted);">3D REPRESENTATION</h4>
-                <div class="legend-item"><span class="legend-color contained"></span><span>HEIGHT-DERIVED 3D</span></div>
-                <div class="legend-item"><span class="legend-color" style="background: #3b82f6;"></span><span>STRUCTURED 3D</span></div>
-                <div class="legend-item"><span class="legend-color" style="background: #64748b;"></span><span>2D ONLY</span></div>
+
+                <div class="legend-item"><span class="legend-color"
+                        style="border: 1px dashed #fff; background: transparent;"></span><span>Cadastral Parcel</span>
+                </div>
+                <div class="legend-item"><span class="legend-color"
+                        style="background: rgba(255,255,255,0.05);"></span><span>Building Footprint</span></div>
+
+                <h4 style="font-size: 10px; margin-top: 16px; margin-bottom: 8px; color: var(--text-muted);">3D
+                    REPRESENTATION</h4>
+                <div class="legend-item"><span class="legend-color contained"></span><span>HEIGHT-DERIVED 3D</span>
+                </div>
+                <div class="legend-item"><span class="legend-color" style="background: #3b82f6;"></span><span>STRUCTURED
+                        3D</span></div>
+                <div class="legend-item"><span class="legend-color" style="background: #64748b;"></span><span>2D
+                        ONLY</span></div>
                 <div class="legend-item"><span class="legend-color majority"></span><span>CONFLICT</span></div>
-                <div class="legend-item"><span class="legend-color conflict"></span><span>HUMAN VERIFICATION</span></div>
-                
-                <h4 style="font-size: 10px; margin-top: 16px; margin-bottom: 8px; color: var(--text-muted);">ELEVATION</h4>
+                <div class="legend-item"><span class="legend-color conflict"></span><span>HUMAN VERIFICATION</span>
+                </div>
+
+                <h4 style="font-size: 10px; margin-top: 16px; margin-bottom: 8px; color: var(--text-muted);">ELEVATION
+                </h4>
                 <div class="legend-item"><span>Ground Elevation: Bare-earth DEM</span></div>
                 <div class="legend-item"><span>Surface Height: DSM-DEM Derived</span></div>
-                <div class="legend-item" style="margin-top: 8px; color: var(--text-muted); font-size: 10px; line-height: 1.4;">
-                    <i>3D height represents DSM-DEM derived surface-height evidence and is not an official floor count.</i>
+                <div class="legend-item"
+                    style="margin-top: 8px; color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+                    <i>3D height represents DSM-DEM derived surface-height evidence and is not an official floor
+                        count.</i>
                 </div>
             </div>
         </aside>
@@ -149,4 +170,5 @@
 
     <script src="app.js?v=5"></script>
 </body>
+
 </html>

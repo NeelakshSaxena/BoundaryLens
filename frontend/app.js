@@ -32,13 +32,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             totalParcels = parcelsData.features.length;
             totalBuildings = bldgsData.features.length;
-            
+
             // Update stats panel
             const updateStats = (isSimulated) => {
                 document.getElementById('stat-buildings').innerText = totalBuildings.toLocaleString();
                 document.getElementById('stat-parcels').innerText = totalParcels.toLocaleString();
             };
-            
+
             updateStats(false); // Initialize stats
 
             // 3. Add Parcels Source & Layer
@@ -127,11 +127,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 const statusField = isSimulated ? '3d_representation_status_simulated' : '3d_representation_status';
 
                 document.getElementById('prop-ulpin').innerText = props.linked_parcel_id || 'NOT AVAILABLE';
-                
+
                 const matchStatus = props.match_status_2d || 'UNKNOWN';
                 const msEl = document.getElementById('prop-match-status');
                 msEl.innerText = matchStatus;
-                
+
                 if (matchStatus === 'CONTAINED') {
                     msEl.style.color = '#10b981';
                 } else if (matchStatus === 'MAJORITY') {
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const h = props[hField];
                 let fl = props.derived_floors;
-                
+
                 // If we are simulating high res data, compute floors logically
                 if (isSimulated && h != null) {
                     fl = Math.max(1, Math.round(h / 3.5));
@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     document.getElementById('prop-height-floors').innerText = 'NOT_DETERMINABLE';
                 }
-                
+
                 let prov = props.height_source || 'NOT_DETERMINABLE';
                 if (isSimulated) {
                     prov = 'GOOGLE_OPEN_BUILDINGS_2.5D'; // Restored text for presentation
@@ -166,11 +166,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     prov = 'DSM + DEM + OSM';
                 }
                 document.getElementById('prop-source').innerText = prov;
-                
+
                 // AI Status
                 const anomalyFlag = props.ai_anomaly_flag;
                 const anomalyScore = props.ai_anomaly_score ? props.ai_anomaly_score.toFixed(4) : "0.0000";
-                
+
                 const aiEl = document.getElementById('prop-ai-status');
                 if (anomalyFlag) {
                     aiEl.innerText = `ANOMALY DETECTED (${anomalyScore})`;
@@ -179,13 +179,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     aiEl.innerText = `NORMAL (${anomalyScore})`;
                     aiEl.style.color = '#10b981';
                 }
-                
+
                 // Proposed ULPIN Generation
                 const bIdNum = props.id.replace(/\D/g, ''); // Extract just numbers from osm_way_123
                 const pIdNum = (props.linked_parcel_id || '0000').replace(/\D/g, '');
                 const proposedUlpin = `IN-KA-BLR-Pcadastral_parcel_${pIdNum}-Bosm_way_${bIdNum}`;
                 document.getElementById('prop-proposed-ulpin').innerText = props.linked_parcel_id ? proposedUlpin : 'NOT_AVAILABLE';
-                
+
                 // Verification Gate
                 const gateEl = document.getElementById('prop-verification');
                 const gate = props.final_verification_status || 'NOT_VERIFIED';
@@ -199,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
             window.reviewAction = (action) => {
                 const gateEl = document.getElementById('prop-gate-status');
                 const parcel = document.getElementById('prop-ulpin').innerText;
-                
+
                 if (action === 'APPROVE') {
                     gateEl.innerText = 'REVIEWER_APPROVED';
                     gateEl.style.color = 'var(--color-contained)';
@@ -213,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     gateEl.innerText = 'MARK_UNRESOLVED';
                     gateEl.style.color = 'var(--color-majority)';
                 }
-                
+
                 console.log(`[AUDIT LOG - RULE 8] Reviewer Action '${action}' recorded for Parcel: ${parcel}`);
                 alert(`Audit Action Recorded!\nParcel: ${parcel}\nStatus: ${action}`);
             };
@@ -230,20 +230,20 @@ document.addEventListener("DOMContentLoaded", () => {
             const resToggle = document.getElementById('res-toggle');
             resToggle.addEventListener('change', (e) => {
                 const isSimulated = e.target.checked;
-                
+
                 // Update Labels Styling
                 document.getElementById('label-strict').classList.toggle('highlight', !isSimulated);
                 document.getElementById('label-sim').classList.toggle('highlight', isSimulated);
-                
+
                 // Update overall stats
                 updateStats(isSimulated);
-                
+
                 // Repaint Map 3D Layer smoothly
                 const heightField = isSimulated ? 'building_height_m_simulated' : 'building_height_m';
                 map.setPaintProperty('buildings-3d-layer', 'fill-extrusion-height', [
                     'coalesce', ['get', heightField], 0
                 ]);
-                
+
                 // If a card is open, hide it to prevent stale data
                 if (!document.getElementById('property-card').classList.contains('hidden')) {
                     document.getElementById('property-card').classList.add('hidden');

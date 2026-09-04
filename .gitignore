@@ -23,3 +23,4 @@ data/processed/*
 *.ply
 *.glb
 *.gltf
+data/drdo/*

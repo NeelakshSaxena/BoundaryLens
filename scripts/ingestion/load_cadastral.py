@@ -14,15 +14,18 @@ def load_cadastral():
         print("No cadastral URL provided in config. Skipping.")
         return
     
+    out_dir = os.path.join("data", "raw")
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, f"{config['region_name'].lower().replace(' ', '_')}_cadastral.kmz")
+    
+    if os.path.exists(out_path):
+        print(f"File {out_path} already exists. Skipping download.")
+        return
+
     try:
         r = requests.get(url, stream=True)
         r.raise_for_status()
         
-        out_dir = os.path.join("data", "raw")
-        os.makedirs(out_dir, exist_ok=True)
-        
-        # We rename it dynamically based on region, or just use a generic name
-        out_path = os.path.join(out_dir, f"{config['region_name'].lower().replace(' ', '_')}_cadastral.kmz")
         with open(out_path, "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
