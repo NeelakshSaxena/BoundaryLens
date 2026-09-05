@@ -5,9 +5,9 @@ In strict compliance with **Project Rule 3** (Evidence Hierarchy) and **Project 
 
 ## 1. Final Verification Gate Summary
 - **Total Buildings Evaluated**: 8611
-- **🟢 VERIFIED** (100% Contained & AI Approved): 8394 (97.5%)
+- **🟢 VERIFIED** (100% Contained & AI Approved): 8354 (97.0%)
 - **🟡 PROVISIONAL** (Majority Overlap & AI Approved): 0 (0.0%)
-- **🔴 HUMAN VERIFICATION REQUIRED** (Boundary Encroachments or AI Outliers): 217 (2.5%)
+- **🔴 HUMAN VERIFICATION REQUIRED** (Boundary Encroachments or AI Outliers): 257 (3.0%)
 
 ## 2. Evidence Lineage Schema
 Every building is assigned an immutable audit record in `data/processed/evidence_fusion_ledger.json`.

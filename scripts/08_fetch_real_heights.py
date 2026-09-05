@@ -58,7 +58,7 @@ def main():
             # LEVEL 3 - STRICT FALLBACK: DO NOT INVENT DATA
             props["building_height_m"] = None
             props["derived_floors"] = None
-            props["height_source"] = "SOURCE NOT CONNECTED"
+            props["height_source"] = "NO DATA (STRICT 30m PIXEL)"
             props["height_confidence"] = "NOT_DETERMINABLE"
             props["3d_representation_status"] = "2D FOOTPRINT ONLY"
             

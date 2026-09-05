@@ -7,13 +7,17 @@ def load_geojson(filepath):
         return json.load(f)
 
 def generate_report(stats, report_path):
+    from config.config_loader import get_active_config
+    config = get_active_config()
+    dsm_name = config["datasets"].get("elevation", {}).get("source_name", "Copernicus GLO-30")
+    
     content = f"""# Phase 6: Elevation Evidence Report (DSM - DEM)
 
 This report details the dual-raster extraction methodology for the SIH26011 prototype.
 A normalized surface height raster (H = DSM_aligned - DEM_aligned) was computed and sampled for each building polygon using robust interior statistics (P90).
 
 ## 1. Ground & Surface Rasters
-- **DSM Source**: `data/interim/dsm_aligned.tif` (Copernicus GLO-30)
+- **DSM Source**: `data/interim/dsm_aligned.tif` ({dsm_name})
 - **DEM Source**: `data/interim/dem_aligned.tif` (SRTM/NASADEM Bare-Earth)
 - **Derived Raster**: `data/processed/elevation/normalized_height.tif`
 
@@ -145,7 +149,18 @@ def main():
                 # STRICT HEIGHT (Default 30m)
                 if len(valid_pixels_strict) > 0:
                     p90_height = float(np.percentile(valid_pixels_strict, 90))
-                    
+                else:
+                    # CENTROID FALLBACK FOR SUB-PIXEL BUILDINGS
+                    centroid = interior_wgs.centroid
+                    try:
+                        centroid_val = list(norm_src.sample([(centroid.x, centroid.y)]))[0][0]
+                        if not np.isnan(centroid_val) and centroid_val != norm_nodata:
+                            p90_height = float(centroid_val)
+                            valid_pixels_strict = [p90_height]
+                    except Exception:
+                        pass
+                
+                if len(valid_pixels_strict) > 0:
                     b["properties"]["valid_pixels"] = len(valid_pixels_strict)
                     
                     # Requirement #11: Sanity Checks

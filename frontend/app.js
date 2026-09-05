@@ -161,9 +161,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 let prov = props.height_source || 'NOT_DETERMINABLE';
                 if (isSimulated) {
-                    prov = 'GOOGLE_OPEN_BUILDINGS_2.5D'; // Restored text for presentation
-                } else if (prov === 'DSM_MINUS_DEM') {
-                    prov = 'DSM + DEM + OSM';
+                    prov = 'CartoDEM_1m_SIMULATED';
+                } else if (prov === 'REAL_DSM - BARE_EARTH_DEM') {
+                    prov = 'CartoDEM - BareEarth_DEM';
                 }
                 document.getElementById('prop-source').innerText = prov;
 

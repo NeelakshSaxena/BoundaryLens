@@ -17,8 +17,8 @@ def load_copernicus_dem():
         print(f"File {out_path} already exists. Skipping download.")
         return
     
-    if not url:
-        print("No DSM URL provided in config. Skipping.")
+    if not url or url == "local":
+        print(f"Elevation DSM source is set to {url}. Skipping download (using local file).")
         return
     
     try:

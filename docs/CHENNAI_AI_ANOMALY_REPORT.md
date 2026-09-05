@@ -13,21 +13,21 @@ This report details the unsupervised Machine Learning analysis conducted on the 
 
 ## 2. Detection Results
 - **Total Buildings Evaluated**: 8611
-- **Normal Inliers**: 8394
-- **AI Anomaly Flags Raised**: 217 (2.52%)
+- **Normal Inliers**: 8354
+- **AI Anomaly Flags Raised**: 257 (2.98%)
 
 ## 3. Sample Flagged Spatial/Vertical Conflicts
 | Building ID | Linked Parcel | 2D Match Status | Height | Overlap | AI Anomaly Score |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `drdo_bldg_4` | `synthetic_parcel_4` | `CONTAINED` | 15.0m | 1.0 | `-0.1057` |
-| `drdo_bldg_93` | `synthetic_parcel_93` | `CONTAINED` | 17.0m | 1.0 | `-0.159` |
-| `drdo_bldg_140` | `synthetic_parcel_140` | `CONTAINED` | 14.0m | 1.0 | `-0.0423` |
-| `drdo_bldg_160` | `synthetic_parcel_160` | `CONTAINED` | 14.0m | 1.0 | `-0.0423` |
-| `drdo_bldg_171` | `synthetic_parcel_171` | `CONTAINED` | 14.0m | 1.0 | `-0.0423` |
-| `drdo_bldg_181` | `synthetic_parcel_181` | `CONTAINED` | 18.0m | 1.0 | `-0.1637` |
-| `drdo_bldg_184` | `synthetic_parcel_184` | `CONTAINED` | 14.0m | 1.0 | `-0.0423` |
-| `drdo_bldg_198` | `synthetic_parcel_198` | `CONTAINED` | 14.0m | 1.0 | `-0.0423` |
-| `drdo_bldg_281` | `synthetic_parcel_281` | `CONTAINED` | 18.0m | 1.0 | `-0.1637` |
-| `drdo_bldg_285` | `synthetic_parcel_285` | `CONTAINED` | 14.0m | 1.0 | `-0.0423` |
+| `drdo_bldg_4` | `synthetic_parcel_4` | `CONTAINED` | 15.0m | 1.0 | `-0.0124` |
+| `drdo_bldg_16` | `synthetic_parcel_16` | `CONTAINED` | 3.0m | 1.0 | `-0.0324` |
+| `drdo_bldg_18` | `synthetic_parcel_18` | `CONTAINED` | 9.0m | 1.0 | `-0.0144` |
+| `drdo_bldg_74` | `synthetic_parcel_74` | `CONTAINED` | 12.0m | 1.0 | `-0.0634` |
+| `drdo_bldg_76` | `synthetic_parcel_76` | `CONTAINED` | 6.0m | 1.0 | `-0.0027` |
+| `drdo_bldg_84` | `synthetic_parcel_84` | `CONTAINED` | 8.0m | 1.0 | `-0.0148` |
+| `drdo_bldg_90` | `synthetic_parcel_90` | `CONTAINED` | 9.0m | 1.0 | `-0.0014` |
+| `drdo_bldg_93` | `synthetic_parcel_93` | `CONTAINED` | 17.0m | 1.0 | `-0.0509` |
+| `drdo_bldg_102` | `synthetic_parcel_102` | `CONTAINED` | 10.0m | 1.0 | `-0.0416` |
+| `drdo_bldg_121` | `synthetic_parcel_121` | `CONTAINED` | 9.0m | 1.0 | `-0.0255` |
 
 **Output File**: `data/processed/buildings_ai_analyzed.geojson`

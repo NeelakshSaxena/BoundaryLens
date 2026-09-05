@@ -30,11 +30,18 @@ def load_drdo_data():
         print(f"Found AGLheight. Min: {gdf['AGLheight'].min()}, Max: {gdf['AGLheight'].max()}")
         gdf.rename(columns={'AGLheight': 'height_m'}, inplace=True)
         
-    # Add building IDs
+    # Add building IDs, source, and estimate floors
     bldg_ids = []
     for i in range(len(gdf)):
         bldg_ids.append(f"drdo_bldg_{i+1}")
     gdf["id"] = bldg_ids
+    gdf["source"] = "DRDO LiDAR (Tier B)"
+    gdf["height_source"] = "DRDO LiDAR (Tier B)"
+    
+    # Calculate derived floors (approx 3.5m per floor) and mark as unverified
+    import numpy as np
+    gdf["derived_floors"] = np.maximum(1, np.round(gdf["height_m"] / 3.5)).astype(int)
+    gdf["floor_count_status"] = "UNVERIFIED_ESTIMATE"
 
     os.makedirs(out_dir, exist_ok=True)
     

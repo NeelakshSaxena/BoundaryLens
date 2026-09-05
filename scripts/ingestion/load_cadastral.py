@@ -9,6 +9,13 @@ def load_cadastral():
     config = get_active_config()
     print(f"Loading Cadastral Maps for {config['region_name']}...")
     
+    if config["datasets"]["cadastral"]["source_name"] == "TIER_C_SYNTHETIC":
+        print("Using Tier C Synthetic Data strategy for cadastral parcels.")
+        import subprocess
+        script_path = os.path.join(os.path.dirname(__file__), "generate_synthetic_parcels_chennai.py")
+        subprocess.run([sys.executable, script_path], check=True)
+        return
+
     url = config["datasets"]["cadastral"]["url"]
     if not url:
         print("No cadastral URL provided in config. Skipping.")

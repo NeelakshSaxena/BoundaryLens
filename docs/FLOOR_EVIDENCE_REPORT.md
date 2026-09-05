@@ -14,7 +14,7 @@ This report documents the extraction of 3D multi-storey floor entities linking p
 ## 3. Data Provenance & Evidence Hierarchy (Rule 3)
 | Source | Count | Confidence | Provenance Description |
 | :--- | :--- | :--- | :--- |
-| `NOT_DETERMINABLE` | 2734 | `MEDIUM` | Satellite ML height estimation (Google Open Buildings 2.5D) |
+| `NOT_DETERMINABLE` | 2734 | `MEDIUM` | DEM-derived height or simulated approximation |
 
 **Output Artefacts**:
 - Floor Entities Database: `data/processed/floor_entities.json`

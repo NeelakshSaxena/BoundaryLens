@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 import time
@@ -17,10 +18,13 @@ def main():
     print(" ** WARNING: UNVERIFIED MANIFEST OVERRIDE **      ")
     print("==================================================\n")
 
+    os.environ["BOUNDARYLENS_REGION"] = "chennai.json"
+
     scripts = [
         "scripts/ingestion/load_drdo_chennai.py",
-        "scripts/ingestion/generate_synthetic_parcels_chennai.py",
+        "scripts/ingestion/load_cadastral.py",
         "scripts/05_match_chennai.py",
+        "scripts/06_extract_elevation_chennai.py",
         "scripts/09_detect_anomalies_chennai.py",
         "scripts/10_fuse_chennai.py"
     ]
