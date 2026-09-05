@@ -31,7 +31,7 @@ def main():
         
         # Strictly handle derived_floors without inventing defaults
         num_floors = props.get("derived_floors")
-        source = props.get("height_source", "SOURCE NOT CONNECTED")
+        source = props.get("height_source", "NO DATA (STRICT 30m PIXEL)")
         confidence = props.get("height_confidence", "NOT_DETERMINABLE")
         
         if num_floors is not None and isinstance(num_floors, int):
@@ -99,7 +99,7 @@ This report documents the extraction of 3D multi-storey floor entities linking p
 """
     for src, cnt in source_distribution.items():
         conf = "HIGH" if src == "OSM_VERIFIED" else "MEDIUM"
-        desc = "Explicit ground survey tagging" if src == "OSM_VERIFIED" else "Satellite ML height estimation (Google Open Buildings 2.5D)"
+        desc = "Explicit ground survey tagging" if src == "OSM_VERIFIED" else "DEM-derived height or simulated approximation"
         report += f"| `{src}` | {cnt} | `{conf}` | {desc} |\n"
 
     report += f"""

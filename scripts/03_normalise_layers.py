@@ -209,7 +209,10 @@ def normalise_cadastral():
 def normalise_elevation_rasters():
     print("--- 3. Normalising Elevation Rasters (DSM & DEM) ---")
     
-    dsm_raw_path = os.path.join("data", "raw", "copernicus_dem_glo30.tif")
+    elevation_cfg = config["datasets"].get("elevation", {})
+    elevation_filename = elevation_cfg.get("filename", "copernicus_dem_glo30.tif")
+    
+    dsm_raw_path = os.path.join("data", "raw", elevation_filename)
     dem_raw_path = os.path.join("data", "raw", "bare_earth_dem.tif")
     
     dsm_aligned_path = os.path.join("data", "interim", "dsm_aligned.tif")

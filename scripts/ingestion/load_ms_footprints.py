@@ -26,6 +26,10 @@ def load_ms_footprints():
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, "building_footprints.json")
     
+    if os.path.exists(out_path):
+        print(f"File {out_path} already exists. Skipping download.")
+        return
+    
     for url in endpoints:
         try:
             print(f"Trying Overpass server: {url}...")

@@ -13,8 +13,12 @@ def load_copernicus_dem():
     out_path = os.path.join("data", "raw", "copernicus_dem_glo30.tif")
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     
-    if not url:
-        print("No DSM URL provided in config. Skipping.")
+    if os.path.exists(out_path):
+        print(f"File {out_path} already exists. Skipping download.")
+        return
+    
+    if not url or url == "local":
+        print(f"Elevation DSM source is set to {url}. Skipping download (using local file).")
         return
     
     try:

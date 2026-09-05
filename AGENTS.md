@@ -101,6 +101,7 @@ Recommended manifest fields:
 - schema
 - known_limitations
 - processing_version
+- allow unverified manifest (if user chooses/warn user before proceeding)
 
 ## 10. Prototype geography
 Default pilot area: Baramati ULB, Pune district, Maharashtra, because it appears in published NAKSHA pilot material and Pune district has government-reported cadastral-map digitisation progress.
@@ -109,6 +110,8 @@ Do NOT assume that every required layer is publicly downloadable for Baramati. T
 Tier A = publicly accessible core data.
 Tier B = optional authoritative/partner data if legitimately obtained.
 Tier C = clearly labelled synthetic test data only for demonstrating unavailable interfaces.
+
+if a new dataset is found and works, update the manifest in data/manifests/ and make it available. but do not change the original pilot area. create a seperate version for the dataset available
 
 The agent must verify availability before claiming a layer exists.
 
@@ -195,6 +198,7 @@ STOP and report BLOCKED if:
 - an agent would need to claim official legal recognition
 - tests fail and the failure is not understood
 - an architectural change is required but not approved
+- if override is initiated, do as said. 
 
 ## 16. Definition of Done
 A phase is complete only when:

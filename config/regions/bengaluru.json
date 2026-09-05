@@ -19,10 +19,11 @@
             "description": "OpenStreetMap footprints"
         },
         "elevation": {
-            "source_name": "Copernicus_GLO30",
+            "source_name": "CartoDEM",
             "type": "raster",
-            "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N12_00_E077_00_DEM/Copernicus_DSM_COG_10_N12_00_E077_00_DEM.tif",
-            "description": "Global DEM"
+            "filename": "cartodem_bengaluru.tif",
+            "url": "local",
+            "description": "ISRO CartoDEM for Bengaluru"
         }
     }
 }

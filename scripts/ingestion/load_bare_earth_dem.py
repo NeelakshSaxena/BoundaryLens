@@ -14,6 +14,10 @@ def load_bare_earth_dem():
     out_path = os.path.join("data", "raw", "bare_earth_dem.tif")
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     
+    if os.path.exists(out_path):
+        print(f"File {out_path} already exists. Skipping download.")
+        return
+    
     # Use OpenTopography SRTM GL1 API
     url = f"https://portal.opentopography.org/API/globaldem?demtype=SRTMGL1&south={lat_min}&north={lat_max}&west={lon_min}&east={lon_max}&outputFormat=GTiff"
     

@@ -23,3 +23,5 @@ data/processed/*
 *.ply
 *.glb
 *.gltf
+data/drdo/*
+data/isro_bhuvan/*
