@@ -18,13 +18,29 @@
     <!-- Phosphor Icons for premium SVG icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <link href="styles.css?v=4" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=6">
 </head>
 
 <body>
     <div id="app-container">
         <!-- Map Container -->
         <div id="map"></div>
+
+        <!-- Top Controls -->
+        <div class="top-controls glass-panel">
+            <button id="toggle-map-style" class="control-btn" title="Toggle Satellite Map">
+                <i class="ph ph-globe"></i>
+            </button>
+            <button id="toggle-theme" class="control-btn" title="Toggle Light/Dark Mode">
+                <i class="ph ph-sun"></i>
+            </button>
+            <button id="toggle-left-sidebar" class="control-btn" title="Toggle Sidebar">
+                <i class="ph ph-sidebar-simple"></i>
+            </button>
+            <button id="toggle-right-sidebar" class="control-btn" title="Toggle Legend">
+                <i class="ph ph-list"></i>
+            </button>
+        </div>
 
         <!-- Sidebar UI -->
         <aside class="sidebar glass-panel">
@@ -65,9 +81,20 @@
                     <span class="switch-label highlight" id="label-sim">1m Drone (Simulated)</span>
                 </label>
             </div>
+            
+            <!-- Property Info / Audit Logs Tabs -->
+            <div class="sidebar-tabs" style="margin-top: 16px;">
+                <button class="tab-btn active" id="tab-info">Property Info</button>
+                <button class="tab-btn" id="tab-logs">Audit Logs</button>
+            </div>
 
-            <!-- Property Card (Hidden by default) -->
-            <div id="property-card" class="property-card hidden">
+            <!-- Tab Content: Property Info -->
+            <div id="content-info">
+                <div id="no-selection-msg" style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0;">
+                    Click a building on the map to view details.
+                </div>
+                <!-- Selected Property Details -->
+                <div id="property-card" class="property-card hidden">
                 <div class="card-header">
                     <i class="ph ph-buildings" style="font-size: 18px; color: var(--text-main);"></i>
                     <h3>Selected Structure</h3>
@@ -98,6 +125,10 @@
                     <span class="prop-label">AI Anomaly Status</span>
                     <span class="prop-value" id="prop-ai-status">-</span>
                 </div>
+                <div class="prop-row">
+                    <span class="prop-label">Confidence Score</span>
+                    <span class="prop-value" id="prop-confidence-score">-</span>
+                </div>
                 <div class="prop-row"
                     style="align-items: flex-start; padding-top: 12px; border-top: 1px solid var(--glass-border); margin-top: 8px;">
                     <span class="prop-label">Proposed<br>3D ULPIN</span>
@@ -114,16 +145,30 @@
                         style="font-size: 10px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 8px;">REVIEWER
                         AUDIT GATE (RULE 8)</span>
                     <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-approve" onclick="alert('Audit Logged: APPROVED')">APPROVE</button>
-                        <button class="btn btn-correct" onclick="alert('Audit Logged: CORRECT DATA')">CORRECT</button>
+                        <button class="btn btn-approve" onclick="window.reviewAction('APPROVE')">APPROVE</button>
+                        <button class="btn btn-correct" onclick="window.reviewAction('CORRECT')">CORRECT</button>
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 8px;">
-                        <button class="btn btn-reject" onclick="alert('Audit Logged: REJECTED')">REJECT</button>
-                        <button class="btn btn-unresolved"
-                            onclick="alert('Audit Logged: MARK UNRESOLVED')">UNRESOLVED</button>
+                        <button class="btn btn-reject" onclick="window.reviewAction('REJECT')">REJECT</button>
+                        <button class="btn btn-unresolved" onclick="window.reviewAction('UNRESOLVED')">UNRESOLVED</button>
                     </div>
                 </div>
             </div>
+            </div> <!-- End Tab Content: Property Info -->
+
+            <!-- Tab Content: Audit Logs -->
+            <div id="content-logs" class="hidden">
+                <div class="logs-header">
+                    <h3>Registrar Activity Log</h3>
+                    <span class="badge badge-ai" id="log-count">0 Entries</span>
+                </div>
+                <div id="logs-container" class="logs-container">
+                    <div class="empty-logs" style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0;">
+                        No audit actions recorded yet.
+                    </div>
+                </div>
+            </div>
+        </aside>
         </aside>
 
         <!-- Right Sidebar for Legend -->
@@ -168,7 +213,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=9"></script>
 </body>
 
 </html>
