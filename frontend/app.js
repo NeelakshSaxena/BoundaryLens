@@ -1,4 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
+    let parcelsData = null;
+    let bldgsData = null;
+    let isSatellite = false;
+    let isLightMode = false;
+    let auditLogs = [];
+    let currentFeatureId = null;
+
     // 1. Initialize MapLibre GL JS
     const map = new maplibregl.Map({
         container: 'map',
@@ -17,6 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let totalBuildings = 0;
     let selectedMarker = null;
 
+    // No longer using styledata as we inject layers directly into setStyle
+
     map.on('load', async () => {
         try {
             // 2. Load GeoJSON Data
@@ -27,8 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!parcelsRes.ok || !bldgsRes.ok) throw new Error("Failed to load data.");
 
-            const parcelsData = await parcelsRes.json();
-            const bldgsData = await bldgsRes.json();
+            parcelsData = await parcelsRes.json();
+            bldgsData = await bldgsRes.json();
 
             totalParcels = parcelsData.features.length;
             totalBuildings = bldgsData.features.length;
@@ -41,61 +50,91 @@ document.addEventListener("DOMContentLoaded", () => {
 
             updateStats(false); // Initialize stats
 
-            // 3. Add Parcels Source & Layer
-            map.addSource('parcels', {
-                type: 'geojson',
-                data: parcelsData
-            });
+            const addCustomLayers = () => {
+                if (!parcelsData || !bldgsData) return;
 
-            map.addLayer({
-                'id': 'parcels-layer',
-                'type': 'fill',
-                'source': 'parcels',
-                'paint': {
-                    'fill-color': '#ffffff',
-                    'fill-opacity': 0.05,
-                    'fill-outline-color': '#ffffff'
+                if (!map.getSource('satellite')) {
+                    map.addSource('satellite', {
+                        'type': 'raster',
+                        'tiles': [ 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' ],
+                        'tileSize': 256,
+                        'attribution': 'Tiles &copy; Esri'
+                    });
                 }
-            });
-
-            map.addLayer({
-                'id': 'parcels-line-layer',
-                'type': 'line',
-                'source': 'parcels',
-                'paint': {
-                    'line-color': '#ffffff',
-                    'line-opacity': 0.3,
-                    'line-width': 1,
-                    'line-dasharray': [2, 2]
+                if (!map.getLayer('satellite-layer')) {
+                    map.addLayer({
+                        'id': 'satellite-layer',
+                        'type': 'raster',
+                        'source': 'satellite',
+                        'layout': { 'visibility': isSatellite ? 'visible' : 'none' }
+                    });
                 }
-            });
 
-            // 4. Add Buildings 3D Source & Layer
-            map.addSource('buildings', {
-                type: 'geojson',
-                data: bldgsData
-            });
-
-            map.addLayer({
-                'id': 'buildings-3d-layer',
-                'type': 'fill-extrusion',
-                'source': 'buildings',
-                'paint': {
-                    // Match Status Color Coding
-                    'fill-extrusion-color': [
-                        'match',
-                        ['get', 'match_status_2d'],
-                        'CONTAINED', '#10b981',        // Emerald
-                        'MAJORITY', '#f59e0b',         // Amber
-                        'BOUNDARY_OVERLAP', '#ef4444', // Red
-                        '#64748b'                      // Slate fallback
-                    ],
-                    // Dynamic 3D Extrusion using Satellite Heights with fallback for missing data
-                    'fill-extrusion-height': ['coalesce', ['get', 'building_height_m'], 0],
-                    'fill-extrusion-base': 0,
-                    'fill-extrusion-opacity': 0.85
+                if (!map.getSource('parcels')) {
+                    map.addSource('parcels', { type: 'geojson', data: parcelsData });
                 }
-            });
+                if (!map.getLayer('parcels-layer')) {
+                    map.addLayer({
+                        'id': 'parcels-layer',
+                        'type': 'fill',
+                        'source': 'parcels',
+                        'paint': {
+                            'fill-color': isSatellite ? '#fbbf24' : (isLightMode ? '#000000' : '#ffffff'),
+                            'fill-opacity': isSatellite ? 0.15 : 0.05,
+                            'fill-outline-color': isSatellite ? '#fbbf24' : (isLightMode ? '#000000' : '#ffffff')
+                        }
+                    });
+                }
+                if (!map.getLayer('parcels-line-layer')) {
+                    map.addLayer({
+                        'id': 'parcels-line-layer',
+                        'type': 'line',
+                        'source': 'parcels',
+                        'paint': {
+                            'line-color': isSatellite ? '#fbbf24' : (isLightMode ? '#000000' : '#ffffff'),
+                            'line-opacity': isSatellite ? 0.8 : 0.3,
+                            'line-width': isSatellite ? 2 : 1,
+                            'line-dasharray': [2, 2]
+                        }
+                    });
+                }
+
+                if (!map.getSource('buildings')) {
+                    map.addSource('buildings', { type: 'geojson', data: bldgsData, promoteId: 'id' });
+                }
+                if (!map.getLayer('buildings-3d-layer')) {
+                    const resToggle = document.getElementById('res-toggle');
+                    const isSimulated = resToggle ? resToggle.checked : false;
+                    const hField = isSimulated ? 'building_height_m_simulated' : 'building_height_m';
+                    map.addLayer({
+                        'id': 'buildings-3d-layer',
+                        'type': 'fill-extrusion',
+                        'source': 'buildings',
+                        'paint': {
+                            'fill-extrusion-color': [
+                                'case',
+                                ['==', ['feature-state', 'reviewer_status'], 'APPROVE'], '#10b981',
+                                ['==', ['feature-state', 'reviewer_status'], 'CORRECT'], '#3b82f6',
+                                ['==', ['feature-state', 'reviewer_status'], 'REJECT'], '#ef4444',
+                                ['==', ['feature-state', 'reviewer_status'], 'UNRESOLVED'], '#f59e0b',
+                                [
+                                    'match',
+                                    ['get', 'match_status_2d'],
+                                    'CONTAINED', '#10b981',
+                                    'MAJORITY', '#f59e0b',
+                                    'BOUNDARY_OVERLAP', '#ef4444',
+                                    '#64748b'
+                                ]
+                            ],
+                            'fill-extrusion-height': ['coalesce', ['get', hField], 0],
+                            'fill-extrusion-base': 0,
+                            'fill-extrusion-opacity': 0.85
+                        }
+                    });
+                }
+            };
+            
+            addCustomLayers();
 
             // Hide Loader
             document.getElementById('loader').classList.add('hidden');
@@ -114,6 +153,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         .setLngLat(e.lngLat)
                         .addTo(map);
                 }
+
+                currentFeatureId = props.id;
+                document.getElementById('no-selection-msg').style.display = 'none';
 
                 // Update Sidebar Property Card
                 const card = document.getElementById('property-card');
@@ -169,16 +211,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // AI Status
                 const anomalyFlag = props.ai_anomaly_flag;
-                const anomalyScore = props.ai_anomaly_score ? props.ai_anomaly_score.toFixed(4) : "0.0000";
+                const anomalyScore = props.ai_anomaly_score || 0;
+                const anomalyScoreFmt = props.ai_anomaly_score ? props.ai_anomaly_score.toFixed(4) : "0.0000";
 
                 const aiEl = document.getElementById('prop-ai-status');
                 if (anomalyFlag) {
-                    aiEl.innerText = `ANOMALY DETECTED (${anomalyScore})`;
+                    aiEl.innerText = `ANOMALY DETECTED (${anomalyScoreFmt})`;
                     aiEl.style.color = '#ef4444';
                 } else {
-                    aiEl.innerText = `NORMAL (${anomalyScore})`;
+                    aiEl.innerText = `NORMAL (${anomalyScoreFmt})`;
                     aiEl.style.color = '#10b981';
                 }
+
+                const confidencePercent = ((1 - anomalyScore) * 100).toFixed(1);
+                const confEl = document.getElementById('prop-confidence-score');
+                if (confEl) confEl.innerText = `${confidencePercent}%`;
 
                 // Proposed ULPIN Generation
                 const bIdNum = props.id.replace(/\D/g, ''); // Extract just numbers from osm_way_123
@@ -197,25 +244,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Change cursor on hover
             window.reviewAction = (action) => {
-                const gateEl = document.getElementById('prop-gate-status');
+                const gateEl = document.getElementById('prop-verification');
                 const parcel = document.getElementById('prop-ulpin').innerText;
 
-                if (action === 'APPROVE') {
-                    gateEl.innerText = 'REVIEWER_APPROVED';
-                    gateEl.style.color = 'var(--color-contained)';
-                } else if (action === 'CORRECT') {
-                    gateEl.innerText = 'REVIEWER_CORRECTED';
-                    gateEl.style.color = 'var(--accent-blue)';
-                } else if (action === 'REJECT') {
-                    gateEl.innerText = 'REVIEWER_REJECTED';
-                    gateEl.style.color = 'var(--color-conflict)';
-                } else {
-                    gateEl.innerText = 'MARK_UNRESOLVED';
-                    gateEl.style.color = 'var(--color-majority)';
+                if (currentFeatureId) {
+                    map.setFeatureState(
+                        { source: 'buildings', id: currentFeatureId },
+                        { reviewer_status: action }
+                    );
                 }
 
+                if (gateEl) {
+                    if (action === 'APPROVE') {
+                        gateEl.innerText = 'REVIEWER_APPROVED';
+                        gateEl.style.color = 'var(--color-contained)';
+                    } else if (action === 'CORRECT') {
+                        gateEl.innerText = 'REVIEWER_CORRECTED';
+                        gateEl.style.color = 'var(--accent-blue)';
+                    } else if (action === 'REJECT') {
+                        gateEl.innerText = 'REVIEWER_REJECTED';
+                        gateEl.style.color = 'var(--color-conflict)';
+                    } else {
+                        gateEl.innerText = 'MARK_UNRESOLVED';
+                        gateEl.style.color = 'var(--color-majority)';
+                    }
+                }
+
+                // Add to audit logs
+                const timestamp = new Date().toLocaleTimeString();
+                auditLogs.unshift({ action, parcel, timestamp });
+                
+                document.getElementById('log-count').innerText = `${auditLogs.length} Entries`;
+                
+                const container = document.getElementById('logs-container');
+                container.innerHTML = auditLogs.map(log => `
+                    <div class="log-entry ${log.action}">
+                        <div class="log-meta">
+                            <span>${log.timestamp}</span>
+                            <span class="log-action ${log.action}">${log.action}</span>
+                        </div>
+                        <div class="log-ulpin">${log.parcel}</div>
+                        <div style="color: var(--text-muted);">Status updated by Surveyor</div>
+                    </div>
+                `).join('');
+
                 console.log(`[AUDIT LOG - RULE 8] Reviewer Action '${action}' recorded for Parcel: ${parcel}`);
-                alert(`Audit Action Recorded!\nParcel: ${parcel}\nStatus: ${action}`);
             };
 
             // Change cursor on hover
@@ -249,6 +322,175 @@ document.addEventListener("DOMContentLoaded", () => {
                     document.getElementById('property-card').classList.add('hidden');
                 }
             });
+
+            // UI Toggles
+            const btnTheme = document.getElementById('toggle-theme');
+            const btnLeft = document.getElementById('toggle-left-sidebar');
+            const btnRight = document.getElementById('toggle-right-sidebar');
+            const btnMapStyle = document.getElementById('toggle-map-style');
+            
+            if (btnTheme) {
+                btnTheme.addEventListener('click', async () => {
+                    document.body.classList.toggle('light-mode');
+                    isLightMode = document.body.classList.contains('light-mode');
+                    btnTheme.innerHTML = isLightMode ? '<i class="ph ph-moon"></i>' : '<i class="ph ph-sun"></i>';
+                    
+                    try {
+                        const targetUrl = isLightMode ? 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' : 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+                        const res = await fetch(targetUrl);
+                        const styleJson = await res.json();
+
+                        // Inject custom sources
+                        if (parcelsData && bldgsData) {
+                            styleJson.sources['satellite'] = {
+                                'type': 'raster',
+                                'tiles': [ 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' ],
+                                'tileSize': 256,
+                                'attribution': 'Tiles &copy; Esri'
+                            };
+                            styleJson.sources['parcels'] = { type: 'geojson', data: parcelsData };
+                            styleJson.sources['buildings'] = { type: 'geojson', data: bldgsData, promoteId: 'id' };
+
+                            // Inject custom layers
+                            styleJson.layers.push({
+                                'id': 'satellite-layer',
+                                'type': 'raster',
+                                'source': 'satellite',
+                                'layout': { 'visibility': isSatellite ? 'visible' : 'none' }
+                            });
+                            
+                            styleJson.layers.push({
+                                'id': 'parcels-layer',
+                                'type': 'fill',
+                                'source': 'parcels',
+                                'paint': {
+                                    'fill-color': isSatellite ? '#fbbf24' : (isLightMode ? '#000000' : '#ffffff'),
+                                    'fill-opacity': isSatellite ? 0.15 : 0.05,
+                                    'fill-outline-color': isSatellite ? '#fbbf24' : (isLightMode ? '#000000' : '#ffffff')
+                                }
+                            });
+
+                            styleJson.layers.push({
+                                'id': 'parcels-line-layer',
+                                'type': 'line',
+                                'source': 'parcels',
+                                'paint': {
+                                    'line-color': isSatellite ? '#fbbf24' : (isLightMode ? '#000000' : '#ffffff'),
+                                    'line-opacity': isSatellite ? 0.8 : 0.3,
+                                    'line-width': isSatellite ? 2 : 1,
+                                    'line-dasharray': [2, 2]
+                                }
+                            });
+
+                            const resToggle = document.getElementById('res-toggle');
+                            const isSimulated = resToggle ? resToggle.checked : false;
+                            const hField = isSimulated ? 'building_height_m_simulated' : 'building_height_m';
+
+                            styleJson.layers.push({
+                                'id': 'buildings-3d-layer',
+                                'type': 'fill-extrusion',
+                                'source': 'buildings',
+                                'paint': {
+                                    'fill-extrusion-color': [
+                                        'case',
+                                        ['==', ['feature-state', 'reviewer_status'], 'APPROVE'], '#10b981',
+                                        ['==', ['feature-state', 'reviewer_status'], 'CORRECT'], '#3b82f6',
+                                        ['==', ['feature-state', 'reviewer_status'], 'REJECT'], '#ef4444',
+                                        ['==', ['feature-state', 'reviewer_status'], 'UNRESOLVED'], '#f59e0b',
+                                        [
+                                            'match',
+                                            ['get', 'match_status_2d'],
+                                            'CONTAINED', '#10b981',
+                                            'MAJORITY', '#f59e0b',
+                                            'BOUNDARY_OVERLAP', '#ef4444',
+                                            '#64748b'
+                                        ]
+                                    ],
+                                    'fill-extrusion-height': ['coalesce', ['get', hField], 0],
+                                    'fill-extrusion-base': 0,
+                                    'fill-extrusion-opacity': 0.85
+                                }
+                            });
+                        }
+                        
+                        map.setStyle(styleJson);
+                    } catch (err) {
+                        console.error('Failed to load style', err);
+                    }
+                });
+            }
+
+            if (btnMapStyle) {
+                btnMapStyle.addEventListener('click', () => {
+                    isSatellite = !isSatellite;
+                    btnMapStyle.classList.toggle('active-satellite', isSatellite);
+                    
+                    if (isSatellite) {
+                        if (map.getLayer('satellite-layer')) {
+                            map.setLayoutProperty('satellite-layer', 'visibility', 'visible');
+                        }
+                        if (map.getLayer('parcels-layer')) {
+                            map.setPaintProperty('parcels-layer', 'fill-color', '#fbbf24');
+                            map.setPaintProperty('parcels-layer', 'fill-opacity', 0.15);
+                            map.setPaintProperty('parcels-layer', 'fill-outline-color', '#fbbf24');
+                        }
+                        if (map.getLayer('parcels-line-layer')) {
+                            map.setPaintProperty('parcels-line-layer', 'line-color', '#fbbf24');
+                            map.setPaintProperty('parcels-line-layer', 'line-opacity', 0.8);
+                            map.setPaintProperty('parcels-line-layer', 'line-width', 2);
+                        }
+                    } else {
+                        if (map.getLayer('satellite-layer')) {
+                            map.setLayoutProperty('satellite-layer', 'visibility', 'none');
+                        }
+                        if (map.getLayer('parcels-layer')) {
+                            map.setPaintProperty('parcels-layer', 'fill-color', isLightMode ? '#000000' : '#ffffff');
+                            map.setPaintProperty('parcels-layer', 'fill-opacity', 0.05);
+                            map.setPaintProperty('parcels-layer', 'fill-outline-color', isLightMode ? '#000000' : '#ffffff');
+                        }
+                        if (map.getLayer('parcels-line-layer')) {
+                            map.setPaintProperty('parcels-line-layer', 'line-color', isLightMode ? '#000000' : '#ffffff');
+                            map.setPaintProperty('parcels-line-layer', 'line-opacity', 0.3);
+                            map.setPaintProperty('parcels-line-layer', 'line-width', 1);
+                        }
+                    }
+                });
+            }
+
+            // Expose addCustomLayers to the global map instance so style.load can call it
+            map._addCustomLayers = addCustomLayers;
+
+            if (btnLeft) {
+                btnLeft.addEventListener('click', () => {
+                    document.querySelector('.sidebar').classList.toggle('hidden-bar');
+                });
+            }
+
+            if (btnRight) {
+                btnRight.addEventListener('click', () => {
+                    document.querySelector('.right-sidebar').classList.toggle('hidden-bar');
+                });
+            }
+
+            // Tabs Logic
+            const tabInfo = document.getElementById('tab-info');
+            const tabLogs = document.getElementById('tab-logs');
+            const contentInfo = document.getElementById('content-info');
+            const contentLogs = document.getElementById('content-logs');
+            if (tabInfo && tabLogs) {
+                tabInfo.addEventListener('click', () => {
+                    tabInfo.classList.add('active');
+                    tabLogs.classList.remove('active');
+                    contentInfo.classList.remove('hidden');
+                    contentLogs.classList.add('hidden');
+                });
+                tabLogs.addEventListener('click', () => {
+                    tabLogs.classList.add('active');
+                    tabInfo.classList.remove('active');
+                    contentLogs.classList.remove('hidden');
+                    contentInfo.classList.add('hidden');
+                });
+            }
 
         } catch (error) {
             console.error(error);
