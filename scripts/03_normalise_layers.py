@@ -224,10 +224,11 @@ def normalise_elevation_rasters():
 
     try:
         import rasterio
+        import numpy as np
         from rasterio.mask import mask
         from shapely.geometry import box
         from rasterio.enums import Resampling
-        from rasterio.warp import calculate_default_transform, reproject
+        from rasterio.warp import reproject
         
         aoi_polygon = [box(LON_MIN, LAT_MIN, LON_MAX, LAT_MAX)]
         
@@ -255,8 +256,6 @@ def normalise_elevation_rasters():
             dem_image, dem_transform = mask(src_dem, aoi_polygon, crop=True)
             
             # Create empty array matching DSM dimensions exactly
-            aligned_dem = rasterio.Band(src_dem, 1) # dummy, we'll reproject into a numpy array
-            import numpy as np
             dem_reprojected = np.empty((1, dsm_meta['height'], dsm_meta['width']), dtype=src_dem.dtypes[0])
             
             reproject(

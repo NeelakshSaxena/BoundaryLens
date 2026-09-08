@@ -104,6 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const resToggle = document.getElementById("res-toggle");
                     const isSimulated = resToggle ? resToggle.checked : false;
                     const hField = isSimulated ? "building_height_m_simulated" : "building_height_m";
+                    
                     map.addLayer({
                         "id": "buildings-3d-layer",
                         "type": "fill-extrusion",
@@ -117,14 +118,27 @@ document.addEventListener("DOMContentLoaded", function () {
                                 ["==", ["feature-state", "reviewer_status"], "UNRESOLVED"], "#f59e0b",
                                 [
                                     "match",
-                                    ["get", "match_status_2d"],
-                                    "CONTAINED", "#10b981",
-                                    "MAJORITY", "#f59e0b",
-                                    "BOUNDARY_OVERLAP", "#ef4444",
-                                    "#64748b"
+                                    ["get", "3d_representation_status"],
+                                    "EXACT STRUCTURED 3D", "#3b82f6",
+                                    "HEIGHT-DERIVED MASS", "#10b981",
+                                    "2D FOOTPRINT ONLY", "#f59e0b",
+                                    [
+                                        "match",
+                                        ["get", "match_status_2d"],
+                                        "CONTAINED", "#10b981",
+                                        "MAJORITY", "#f59e0b",
+                                        "BOUNDARY_OVERLAP", "#ef4444",
+                                        "#64748b"
+                                    ]
                                 ]
                             ],
-                            "fill-extrusion-height": ["coalesce", ["get", hField], 0],
+                            "fill-extrusion-height": [
+                                "coalesce",
+                                ["get", hField],
+                                ["get", "building_height_m_simulated"],
+                                ["get", "building_height_m"],
+                                10
+                            ],
                             "fill-extrusion-base": 0,
                             "fill-extrusion-opacity": 0.85
                         }
@@ -179,7 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const ground = props.ground_elevation_m;
                 document.getElementById("prop-ground").innerText = ground ? ground + " m" : "NOT_DETERMINABLE";
 
-                const h = props[hField];
+                const h = props[hField] || props["building_height_m"] || props["building_height_m_simulated"];
                 let fl = props.derived_floors;
 
                 if (isSimulated && h != null) {
@@ -219,7 +233,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const confEl = document.getElementById("prop-confidence-score");
                 if (confEl) confEl.innerText = confidencePercent + "%";
 
-                const bIdNum = props.id.replace(/\D/g, "");
+                const bIdNum = String(props.id || "0").replace(/\D/g, "");
                 const pIdNum = (props.linked_parcel_id || "0000").replace(/\D/g, "");
                 const proposedUlpin = "IN-KA-BLR-Pcadastral_parcel_" + pIdNum + "-Bosm_way_" + bIdNum;
                 document.getElementById("prop-proposed-ulpin").innerText = props.linked_parcel_id ? proposedUlpin : "NOT_AVAILABLE";
@@ -300,7 +314,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     const heightField = isSimulated ? "building_height_m_simulated" : "building_height_m";
                     map.setPaintProperty("buildings-3d-layer", "fill-extrusion-height", [
-                        "coalesce", ["get", heightField], 0
+                        "coalesce", ["get", heightField], ["get", "building_height_m_simulated"], ["get", "building_height_m"], 10
                     ]);
 
                     if (!document.getElementById("property-card").classList.contains("hidden")) {
@@ -368,7 +382,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         if (map.getLayer("buildings-3d-layer")) {
                             map.setPaintProperty("buildings-3d-layer", "fill-extrusion-height", [
-                                "coalesce", ["get", heightField], 0
+                                "coalesce", ["get", heightField], ["get", "building_height_m_simulated"], ["get", "building_height_m"], 10
                             ]);
                             map.setPaintProperty("buildings-3d-layer", "fill-extrusion-opacity", 0.85);
                         }
@@ -455,14 +469,23 @@ document.addEventListener("DOMContentLoaded", function () {
                                         ["==", ["feature-state", "reviewer_status"], "UNRESOLVED"], "#f59e0b",
                                         [
                                             "match",
-                                            ["get", "match_status_2d"],
-                                            "CONTAINED", "#10b981",
-                                            "MAJORITY", "#f59e0b",
-                                            "BOUNDARY_OVERLAP", "#ef4444",
-                                            "#64748b"
+                                            ["get", "3d_representation_status"],
+                                            "EXACT STRUCTURED 3D", "#3b82f6",
+                                            "HEIGHT-DERIVED MASS", "#10b981",
+                                            "2D FOOTPRINT ONLY", "#f59e0b",
+                                            [
+                                                "match",
+                                                ["get", "match_status_2d"],
+                                                "CONTAINED", "#10b981",
+                                                "MAJORITY", "#f59e0b",
+                                                "BOUNDARY_OVERLAP", "#ef4444",
+                                                "#64748b"
+                                            ]
                                         ]
                                     ],
-                                    "fill-extrusion-height": ["coalesce", ["get", hField], 0],
+                                    "fill-extrusion-height": [
+                                        "coalesce", ["get", hField], ["get", "building_height_m_simulated"], ["get", "building_height_m"], 10
+                                    ],
                                     "fill-extrusion-base": 0,
                                     "fill-extrusion-opacity": 0.85
                                 }
