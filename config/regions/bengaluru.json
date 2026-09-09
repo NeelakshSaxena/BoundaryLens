@@ -24,6 +24,15 @@
             "filename": "cartodem_bengaluru.tif",
             "url": "local",
             "description": "ISRO CartoDEM for Bengaluru"
+        },
+        "ndvi": {
+            "source_name": "Sentinel-2 L2A (Copernicus)",
+            "type": "raster",
+            "stac_endpoint": "https://earth-search.aws.element84.com/v1",
+            "stac_collection": "sentinel-2-l2a",
+            "datetime": "2023-11-01T00:00:00Z/2024-04-30T23:59:59Z",
+            "max_cloud_cover": 15,
+            "description": "Additive vegetation-evidence layer (NDVI = (B08-B04)/(B08+B04)). Consumed by scripts/11_ndvi_vegetation_evidence.py; does not affect existing phases."
         }
     }
 }

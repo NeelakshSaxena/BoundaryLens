@@ -526,6 +526,12 @@ input:checked + .slider:before {
     background: rgba(255, 255, 255, 0.1);
 }
 
+/* Additive: "on" state for the NDVI vegetation-highlight toggle. */
+.control-btn.active-veg {
+    background: rgba(16, 185, 129, 0.22);
+    color: #34d399;
+}
+
 .sidebar.hidden-bar {
     transform: translateX(-120%);
     opacity: 0;

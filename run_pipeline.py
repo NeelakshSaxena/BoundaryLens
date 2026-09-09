@@ -39,7 +39,15 @@ def main():
         # AI & Fusion Engine
         "scripts/09_detect_anomalies_ai.py",
         "scripts/10_fuse_evidence_engine.py",
-        
+
+        # Additive: NDVI Vegetation Evidence Layer (Phase 11).
+        # Runs AFTER fusion so it only annotates the final fused buildings with a
+        # vegetation-vs-building height confidence block. It does not alter any
+        # earlier phase. Both steps exit 0 even if the NDVI scene cannot be
+        # obtained (buildings are then marked NDVI_UNAVAILABLE, never fabricated).
+        "scripts/ingestion/load_sentinel2_ndvi.py",
+        "scripts/11_ndvi_vegetation_evidence.py",
+
         # Master Outputs & Compliance
         # Note: 14_generate_vertical_ulpins.py was removed to strictly adhere to "No Fake ULPIN" rule.
     ]

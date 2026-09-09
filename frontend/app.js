@@ -5,6 +5,53 @@ document.addEventListener("DOMContentLoaded", function () {
     let isLightMode = false;
     let auditLogs = [];
     let currentFeatureId = null;
+    let vegHighlightOn = false;
+
+    // --- Additive: colour expressions for the "highlight likely vegetation" mode ---
+    // BASE_COLOR_EXPR is an exact copy of the default buildings-3d-layer colour
+    // expression, used only to restore it when the vegetation highlight is turned off.
+    const BASE_COLOR_EXPR = [
+        "case",
+        ["==", ["feature-state", "reviewer_status"], "APPROVE"], "#10b981",
+        ["==", ["feature-state", "reviewer_status"], "CORRECT"], "#3b82f6",
+        ["==", ["feature-state", "reviewer_status"], "REJECT"], "#ef4444",
+        ["==", ["feature-state", "reviewer_status"], "UNRESOLVED"], "#f59e0b",
+        [
+            "match", ["get", "3d_representation_status"],
+            "EXACT STRUCTURED 3D", "#3b82f6",
+            "HEIGHT-DERIVED MASS", "#10b981",
+            "2D FOOTPRINT ONLY", "#f59e0b",
+            [
+                "match", ["get", "match_status_2d"],
+                "CONTAINED", "#10b981",
+                "MAJORITY", "#f59e0b",
+                "BOUNDARY_OVERLAP", "#ef4444",
+                "#64748b"
+            ]
+        ]
+    ];
+    // Vegetation evidence (spatially-resolved pattern):
+    //   green  = low / surrounding vegetation (building surface is clear)
+    //   amber  = edge / internal / mixed vegetation (verify)
+    //   red    = vegetation dominant (elevation may be canopy)
+    //   grey   = resolution-limited / not determinable
+    // Older flat values (LOW/MIXED/STRONG_VEGETATION) are kept for back-compat.
+    // Reviewer overrides still win so audited buildings keep their status colour.
+    const VEG_COLOR_EXPR = [
+        "case",
+        ["==", ["feature-state", "reviewer_status"], "APPROVE"], "#10b981",
+        ["==", ["feature-state", "reviewer_status"], "CORRECT"], "#3b82f6",
+        ["==", ["feature-state", "reviewer_status"], "REJECT"], "#ef4444",
+        ["==", ["feature-state", "reviewer_status"], "UNRESOLVED"], "#f59e0b",
+        [
+            "match", ["get", "vegetation_evidence"],
+            ["LOW_VEGETATION", "SURROUNDING_VEGETATION"], "#10b981",
+            ["EDGE_VEGETATION", "INTERNAL_VEGETATION", "MIXED_VEGETATION"], "#f59e0b",
+            ["VEGETATION_DOMINANT", "STRONG_VEGETATION"], "#ef4444",
+            ["RESOLUTION_LIMITED", "NODATA", "NOT_DETERMINABLE", "NOT_COMPUTED"], "#64748b",
+            "#475569"
+        ]
+    ];
 
     // 1. Initialize MapLibre GL JS
     const map = new maplibregl.Map({
@@ -216,6 +263,76 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
                 document.getElementById("prop-source").innerText = prov;
 
+                // --- Additive: NDVI vegetation evidence / building-height confidence ---
+                // NDVI is an independent vegetation-evidence layer on top of the
+                // Copernicus GLO-30 surface elevation. It is NOT a building-vs-tree
+                // classifier and buildings are never hidden on low confidence.
+                (function renderNdviEvidence() {
+                    var vegRaw = props.vegetation_evidence || "NOT_COMPUTED";
+                    var vegLabel = props.vegetation_evidence_label || ({
+                        LOW_VEGETATION: "Low vegetation",
+                        SURROUNDING_VEGETATION: "Surrounding vegetation",
+                        EDGE_VEGETATION: "Edge vegetation",
+                        INTERNAL_VEGETATION: "Internal vegetation",
+                        MIXED_VEGETATION: "Mixed vegetation",
+                        VEGETATION_DOMINANT: "Vegetation dominant within footprint",
+                        RESOLUTION_LIMITED: "Resolution limited",
+                        STRONG_VEGETATION: "Strong vegetation",
+                        NODATA: "No valid NDVI data",
+                        NOT_DETERMINABLE: "Not determinable",
+                        NOT_COMPUTED: "Not available"
+                    }[vegRaw] || "Not available");
+
+                    var cat = props.building_height_confidence || "NOT_DETERMINABLE";
+                    var score100 = props.building_height_confidence_score_100;
+                    var vStatus = props.vertical_evidence_status || "NDVI_UNAVAILABLE";
+                    var hv = props.ndvi_review_recommendation || "NONE";
+
+                    var veEl = document.getElementById("prop-ndvi-evidence");
+                    if (veEl) veEl.innerText = vegLabel;
+
+                    var cEl = document.getElementById("prop-height-confidence");
+                    if (cEl) {
+                        cEl.innerText = (score100 !== null && score100 !== undefined)
+                            ? (cat + " (" + score100 + "/100)") : cat;
+                        cEl.style.color = cat === "HIGH" ? "#10b981"
+                            : cat === "MEDIUM" ? "#f59e0b"
+                            : cat === "LOW" ? "#ef4444" : "#94a3b8";
+                    }
+
+                    var vsEl = document.getElementById("prop-vertical-evidence");
+                    if (vsEl) {
+                        var nice = {
+                            SUPPORTED: "SUPPORTED",
+                            PROVISIONAL: "PROVISIONAL",
+                            VEGETATION_POSSIBLE: "VEGETATION POSSIBLE",
+                            NOT_DETERMINABLE: "NOT DETERMINABLE",
+                            NDVI_UNAVAILABLE: "NDVI UNAVAILABLE"
+                        }[vStatus] || vStatus;
+                        vsEl.innerText = nice;
+                        vsEl.style.color = vStatus === "SUPPORTED" ? "#10b981"
+                            : vStatus === "PROVISIONAL" ? "#f59e0b" : "#ef4444";
+                    }
+
+                    var hvRow = document.getElementById("prop-row-ndvi-hv");
+                    var hvEl = document.getElementById("prop-ndvi-hv");
+                    if (hvRow && hvEl) {
+                        if (hv === "HUMAN_VERIFICATION_REQUIRED") {
+                            hvRow.style.display = "";
+                            hvEl.innerText = "REQUIRED";
+                        } else {
+                            hvRow.style.display = "none";
+                        }
+                    }
+
+                    if (props.ndvi_source) {
+                        var srcEl = document.getElementById("prop-source");
+                        if (srcEl && srcEl.innerText.indexOf("NDVI") === -1) {
+                            srcEl.innerText = srcEl.innerText + " + NDVI";
+                        }
+                    }
+                })();
+
                 const anomalyFlag = props.ai_anomaly_flag;
                 const anomalyScore = props.ai_anomaly_score || 0;
                 const anomalyScoreFmt = props.ai_anomaly_score ? props.ai_anomaly_score.toFixed(4) : "0.0000";
@@ -329,6 +446,27 @@ document.addEventListener("DOMContentLoaded", function () {
             const btnRight = document.getElementById("toggle-right-sidebar");
             const btnMapStyle = document.getElementById("toggle-map-style");
             const btnCadastralBasemap = document.getElementById("toggle-cadastral-basemap");
+            const btnVeg = document.getElementById("toggle-veg");
+
+            // --- Additive: highlight buildings by NDVI vegetation evidence ---
+            // Does NOT hide any building; only recolours the extrusions and shows
+            // a legend so a reviewer can see where the surface elevation may be
+            // vegetation rather than structure.
+            if (btnVeg) {
+                btnVeg.addEventListener("click", function () {
+                    vegHighlightOn = !vegHighlightOn;
+                    btnVeg.classList.toggle("active-veg", vegHighlightOn);
+                    const vegLegend = document.getElementById("veg-legend");
+                    if (vegLegend) vegLegend.hidden = !vegHighlightOn;
+                    if (map.getLayer("buildings-3d-layer")) {
+                        map.setPaintProperty(
+                            "buildings-3d-layer",
+                            "fill-extrusion-color",
+                            vegHighlightOn ? VEG_COLOR_EXPR : BASE_COLOR_EXPR
+                        );
+                    }
+                });
+            }
 
             // Enhanced Cadastral Basemap Projection Toggle
             if (btnCadastralBasemap) {
@@ -493,6 +631,19 @@ document.addEventListener("DOMContentLoaded", function () {
                         }
 
                         map.setStyle(styleJson);
+
+                        // Re-apply the vegetation highlight after a theme swap rebuilds the layer.
+                        if (vegHighlightOn) {
+                            map.once("styledata", function () {
+                                if (map.getLayer("buildings-3d-layer")) {
+                                    map.setPaintProperty(
+                                        "buildings-3d-layer",
+                                        "fill-extrusion-color",
+                                        VEG_COLOR_EXPR
+                                    );
+                                }
+                            });
+                        }
                     } catch (err) {
                         console.error("Failed to load style", err);
                     }

@@ -75,6 +75,14 @@ Execute the following command in your terminal:
 python run_pipeline.py
 ```
 
+> **Bare-earth DEM without an API key:** for reproducible local/hackathon runs,
+> place a bare-earth DEM GeoTIFF at `data/raw/dem/bare_earth_dem.tif`. It must
+> cover the Bengaluru AOI (W,S,E,N = `77.61365, 12.92365, 77.62635, 12.93635`).
+> When present it is validated and used directly and **OpenTopography is not
+> contacted**; otherwise the pipeline falls back to the OpenTopography download
+> (which needs an `OPEN_TOPOGRAPHY_API` key). See
+> [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) → *Local bare-earth DEM*.
+
 **What the pipeline runner does:**
 1. Ingests all raw AOI data (OSM, Cadastral, DEM).
 2. Cleans, normalizes CRS, and fixes invalid geometries.
@@ -104,5 +112,9 @@ Once the pipeline finishes and the server starts:
 - **Building Footprints**: OpenStreetMap (ODbL)
 - **Terrain Elevation**: Copernicus GLO-30 DEM (Open Access)
 - **Height Estimates**: Google Open Buildings 2.5D Temporal Dataset
+- **Vegetation Evidence (NDVI)**: Copernicus Sentinel-2 L2A via the public earth-search STAC / AWS Open Data mirror — free and open, *"Contains modified Copernicus Sentinel data"*. Added as an independent evidence layer (Phase 11)
+  to test whether an elevation-derived building height may be vegetation rather
+  than structure. See [`docs/NDVI_VEGETATION_EVIDENCE.md`](docs/NDVI_VEGETATION_EVIDENCE.md).
+  NDVI is vegetation evidence only — **not** a building-vs-tree classifier.
 
 *Prototype designed for the Smart India Hackathon (SIH 2024). Proposed Vertical ULPINs are for demonstration purposes only and do not represent legally binding identity issuance.*

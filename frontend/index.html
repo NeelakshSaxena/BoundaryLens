@@ -18,7 +18,7 @@
     <!-- Phosphor Icons for premium SVG icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <link rel="stylesheet" href="styles.css?v=6">
+    <link rel="stylesheet" href="styles.css?v=8">
 </head>
 
 <body>
@@ -33,6 +33,9 @@
             </button>
             <button id="toggle-map-style" class="control-btn" title="Toggle Satellite Map">
                 <i class="ph ph-globe"></i>
+            </button>
+            <button id="toggle-veg" class="control-btn" title="Highlight likely vegetation (NDVI evidence)">
+                <i class="ph ph-tree"></i>
             </button>
             <button id="toggle-theme" class="control-btn" title="Toggle Light/Dark Mode">
                 <i class="ph ph-sun"></i>
@@ -131,6 +134,27 @@
                         <span class="prop-label">AI Anomaly Status</span>
                         <span class="prop-value" id="prop-ai-status">-</span>
                     </div>
+
+                    <!-- Additive: NDVI vegetation evidence for the elevation-derived height.
+                         NDVI is vegetation evidence, not a building-vs-tree classifier. -->
+                    <div class="prop-row"
+                        style="padding-top: 12px; border-top: 1px solid var(--glass-border); margin-top: 8px;">
+                        <span class="prop-label">NDVI Evidence</span>
+                        <span class="prop-value" id="prop-ndvi-evidence">-</span>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Building Height<br>Confidence</span>
+                        <span class="prop-value" id="prop-height-confidence" style="font-weight: 700;">-</span>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Vertical Evidence</span>
+                        <span class="prop-value" id="prop-vertical-evidence" style="font-weight: 700;">-</span>
+                    </div>
+                    <div class="prop-row" id="prop-row-ndvi-hv" style="display: none;">
+                        <span class="prop-label">Human Verification</span>
+                        <span class="prop-value" id="prop-ndvi-hv" style="font-weight: 700; color: #ef4444;">-</span>
+                    </div>
+
                     <div class="prop-row"
                         style="align-items: flex-start; padding-top: 12px; border-top: 1px solid var(--glass-border); margin-top: 8px;">
                         <span class="prop-label">Proposed<br>3D ULPIN</span>
@@ -195,6 +219,25 @@
                 <div class="legend-item"><span class="legend-color conflict"></span><span>HUMAN VERIFICATION</span>
                 </div>
 
+                <div id="veg-legend" hidden>
+                    <h4 style="font-size: 10px; margin-top: 16px; margin-bottom: 8px; color: var(--text-muted);">
+                        VEGETATION EVIDENCE (NDVI, spatial)</h4>
+                    <div class="legend-item"><span class="legend-color" style="background: #10b981;"></span><span>Low /
+                            surrounding vegetation - building surface clear</span></div>
+                    <div class="legend-item"><span class="legend-color" style="background: #f59e0b;"></span><span>Edge /
+                            internal / mixed vegetation - verify</span></div>
+                    <div class="legend-item"><span class="legend-color" style="background: #ef4444;"></span><span>Vegetation
+                            dominant - elevation may be canopy</span></div>
+                    <div class="legend-item"><span class="legend-color" style="background: #64748b;"></span><span>Resolution
+                            limited / not determinable</span></div>
+                    <div class="legend-item"
+                        style="margin-top: 8px; color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+                        <i>Vegetation <b>around</b> a building does not lower its height confidence - only vegetation
+                            dominating the building surface does. NDVI is evidence, not a building-vs-tree classifier.
+                            No building is hidden.</i>
+                    </div>
+                </div>
+
                 <h4 style="font-size: 10px; margin-top: 16px; margin-bottom: 8px; color: var(--text-muted);">ELEVATION
                 </h4>
                 <div class="legend-item"><span>Ground Elevation: Bare-earth DEM</span></div>
@@ -214,7 +257,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=9"></script>
+    <script src="app.js?v=12"></script>
 </body>
 
 </html>
