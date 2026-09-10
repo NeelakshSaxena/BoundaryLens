@@ -112,6 +112,22 @@ Once the pipeline finishes and the server starts:
 - **Building Footprints**: OpenStreetMap (ODbL)
 - **Terrain Elevation**: Copernicus GLO-30 DEM (Open Access)
 - **Height Estimates**: Google Open Buildings 2.5D Temporal Dataset
+- **Floor Detection (Phase 12, v3 ML)**: a real supervised model —
+  **HistGradientBoosting / RandomForest trained on 12,737 OSM `building:levels`
+  labels** across greater Bengaluru (ODbL, whole-cell spatial train/val/test
+  split 8441/2327/1969, no leakage; test MAE 2.36, within-±1 57.5%; independent
+  16-building AOI check MAE 1.13, within-±1 62%), with footprint-geometry + OSM
+  tag + coarse GLO-30 DSM features, isotonic-calibrated confidence
+  (P within ±1 floor, ceiling ≈ 0.73) and `IsolationForest` out-of-distribution
+  rejection. Per building, three clearly separated states: **OBSERVED** (real OSM
+  tag on the AOI building, 16), **PREDICTED** (calibrated ML estimate, labelled
+  *EST.*, tiered HIGH/MEDIUM/LOW — 2456; LOW is shown for review but gets no
+  IDs), **NOT_DETERMINABLE** (the model abstains — 262). No CNN (no
+  floor-resolving imagery), no synthetic data, no fabricated confidence, no
+  `height / 3.5`. Proposed floor-level IDs (`IN-KA-BLR-P…-B…-F…`, 5893) are
+  spatial linkages for review, **not official ULPINs**.
+  See [`docs/FLOOR_ESTIMATION.md`](docs/FLOOR_ESTIMATION.md) and
+  [`docs/FLOOR_MODEL_REPORT.md`](docs/FLOOR_MODEL_REPORT.md).
 - **Vegetation Evidence (NDVI)**: Copernicus Sentinel-2 L2A via the public earth-search STAC / AWS Open Data mirror — free and open, *"Contains modified Copernicus Sentinel data"*. Added as an independent evidence layer (Phase 11)
   to test whether an elevation-derived building height may be vegetation rather
   than structure. See [`docs/NDVI_VEGETATION_EVIDENCE.md`](docs/NDVI_VEGETATION_EVIDENCE.md).

@@ -48,6 +48,21 @@ def main():
         "scripts/ingestion/load_sentinel2_ndvi.py",
         "scripts/11_ndvi_vegetation_evidence.py",
 
+        # Additive: Floor Detection (Phase 12).
+        #   load_osm_floor_labels : ~12.7k REAL OSM building:levels labels across
+        #                           greater Bengaluru (AOI excluded) via Overpass.
+        #   train_floor_model     : spatial-split RandomForest / HistGB, calibrated
+        #                           confidence + IsolationForest OOD. Real metrics.
+        #   12_estimate_floors    : OBSERVED (real tag) / PREDICTED (model, accepted)
+        #                           / NOT_DETERMINABLE. No CNN (no floor-resolving
+        #                           imagery), no synthetic data, no fabricated
+        #                           confidence. All three exit 0 if a source is
+        #                           unavailable (buildings -> NOT_DETERMINABLE).
+        "scripts/ingestion/load_osm_floor_labels.py",
+        "scripts/ingestion/load_copernicus_glo30.py",
+        "scripts/train_floor_model.py",
+        "scripts/12_estimate_floors.py",
+
         # Master Outputs & Compliance
         # Note: 14_generate_vertical_ulpins.py was removed to strictly adhere to "No Fake ULPIN" rule.
     ]
