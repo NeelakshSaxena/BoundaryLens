@@ -16,6 +16,35 @@ https://bhunaksha.nic.in/bhunaksha/userguide.jsp
 Implementation status:
 https://bhunaksha.nic.in/bhunaksha/implementationstatus.jsp
 
+## Local bare-earth DEM (reproducible / hackathon execution)
+
+For reproducible local execution, BoundaryLens supports a **local bare-earth DEM
+GeoTIFF** at:
+
+```text
+data/raw/dem/bare_earth_dem.tif
+```
+
+This avoids requiring an OpenTopography API key. `scripts/ingestion/load_bare_earth_dem.py`
+checks this path first:
+
+- **If the file exists** it is validated (readable by rasterio, has a band, has a
+  CRS, non-empty, resolution present) and must **overlap the existing Bengaluru
+  AOI** — West `77.61365`, South `12.92365`, East `77.62635`, North `12.93635`.
+  On success it is staged to `data/raw/bare_earth_dem.tif` (the path every later
+  phase already uses) and **OpenTopography is not contacted**. Provenance is
+  written to `data/manifests/bare_earth_dem_local_manifest.json` with
+  `dem_source = LOCAL_BARE_EARTH_DEM`.
+- **If the DEM does not overlap the AOI**, ingestion fails with a clear "wrong
+  geographic dataset" error (it is not silently used).
+- **If the file is missing**, the exact expected path is printed and the existing
+  OpenTopography download mechanism is used as a fallback.
+
+The local bare-earth DEM is the **terrain / ground reference** only. It does not
+replace the Copernicus GLO-30 surface elevation or the NDVI vegetation-evidence
+layer — these remain separate evidence sources. The dataset is not treated as
+authoritative unless its own source establishes that.
+
 ## Bhuvan / NRSC
 Free data download help:
 https://bhuvan-app3.nrsc.gov.in/data/download/help/source/html/steps_to_download_data.htm

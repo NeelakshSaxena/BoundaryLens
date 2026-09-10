@@ -18,7 +18,11 @@
     <!-- Phosphor Icons for premium SVG icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <link rel="stylesheet" href="styles.css?v=6">
+    <!-- Three.js (r128) - interactive 3D building model in the floor panel -->
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <link rel="stylesheet" href="styles.css?v=14">
 </head>
 
 <body>
@@ -33,6 +37,12 @@
             </button>
             <button id="toggle-map-style" class="control-btn" title="Toggle Satellite Map">
                 <i class="ph ph-globe"></i>
+            </button>
+            <button id="toggle-veg" class="control-btn" title="Highlight likely vegetation (NDVI evidence)">
+                <i class="ph ph-tree"></i>
+            </button>
+            <button id="toggle-floors" class="control-btn" title="Show buildings with an estimated floor count">
+                <i class="ph ph-stack"></i>
             </button>
             <button id="toggle-theme" class="control-btn" title="Toggle Light/Dark Mode">
                 <i class="ph ph-sun"></i>
@@ -69,6 +79,9 @@
                     <span class="stat-label">CADASTRAL PARCELS</span>
                 </div>
             </div>
+
+            <!-- Additive: floor-detection coverage (real numbers from the dataset) -->
+            <div id="floor-coverage" class="floor-coverage glass-panel"></div>
 
             <!-- Resolution Toggle -->
             <div class="resolution-toggle glass-panel" style="margin-top: 12px; padding: 16px; border-radius: 12px;">
@@ -131,6 +144,53 @@
                         <span class="prop-label">AI Anomaly Status</span>
                         <span class="prop-value" id="prop-ai-status">-</span>
                     </div>
+
+                    <!-- Additive: NDVI vegetation evidence for the elevation-derived height.
+                         NDVI is vegetation evidence, not a building-vs-tree classifier. -->
+                    <div class="prop-row"
+                        style="padding-top: 12px; border-top: 1px solid var(--glass-border); margin-top: 8px;">
+                        <span class="prop-label">NDVI Evidence</span>
+                        <span class="prop-value" id="prop-ndvi-evidence">-</span>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Building Height<br>Confidence</span>
+                        <span class="prop-value" id="prop-height-confidence" style="font-weight: 700;">-</span>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Vertical Evidence</span>
+                        <span class="prop-value" id="prop-vertical-evidence" style="font-weight: 700;">-</span>
+                    </div>
+                    <div class="prop-row" id="prop-row-ndvi-hv" style="display: none;">
+                        <span class="prop-label">Human Verification</span>
+                        <span class="prop-value" id="prop-ndvi-hv" style="font-weight: 700; color: #ef4444;">-</span>
+                    </div>
+
+                    <!-- Additive: approximate floor estimate (Phase 12).
+                         REFERENCE = real OSM building:levels; MODELLED = height / assumed
+                         floor-height; NOT_DETERMINABLE = evidence insufficient. No CNN. -->
+                    <div class="prop-row"
+                        style="padding-top: 12px; border-top: 1px solid var(--glass-border); margin-top: 8px;">
+                        <span class="prop-label">Floor Estimate</span>
+                        <span class="prop-value" id="prop-floor-est" style="font-weight: 700;">-</span>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Prediction<br>Confidence</span>
+                        <span class="prop-value" id="prop-floor-conf">-</span>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Evidence</span>
+                        <span class="prop-value" id="prop-floor-evidence" style="font-size: 10px;">-</span>
+                    </div>
+                    <div class="prop-row" id="prop-row-floor-hv" style="display: none;">
+                        <span class="prop-label">Human Verification</span>
+                        <span class="prop-value" id="prop-floor-hv" style="font-weight: 700; color: #ef4444;">-</span>
+                    </div>
+                    <div class="prop-row" id="prop-row-floor-btn" style="display: none;">
+                        <button id="btn-view-floors" class="btn"
+                            style="width: 100%; background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.35);">
+                            View Floor Levels</button>
+                    </div>
+
                     <div class="prop-row"
                         style="align-items: flex-start; padding-top: 12px; border-top: 1px solid var(--glass-border); margin-top: 8px;">
                         <span class="prop-label">Proposed<br>3D ULPIN</span>
@@ -172,6 +232,29 @@
             </div>
         </aside>
 
+        <!-- Additive: Floor-Level Spatial Identity panel (Phase 12).
+             Opens beside the property card when a building has a floor estimate.
+             Floor cards / 3D bands are a VISUAL representation of ESTIMATED floors -
+             no exact architectural slabs were measured. IDs are proposed linkages,
+             never official ULPINs. -->
+        <aside id="floor-panel" class="glass-panel" hidden>
+            <div class="floor-panel-head">
+                <div class="floor-panel-title">
+                    <h3>Floor-Level Spatial Inspection</h3>
+                    <div class="floor-panel-sub">
+                        <span id="floor-panel-bldg">Building -</span> &middot;
+                        <span id="floor-panel-parcel">Parcel -</span>
+                    </div>
+                </div>
+                <button id="floor-panel-close" type="button" title="Close (Esc)" aria-label="Close floor panel">&times;</button>
+            </div>
+            <div id="floor-panel-diagram" class="floor-panel-diagram"></div>
+            <div id="floor-panel-summary" class="floor-panel-summary"></div>
+            <div id="floor-panel-actions" class="floor-panel-actions"></div>
+            <div id="floor-panel-body" class="floor-panel-body"></div>
+            <div class="floor-panel-foot">&#9888; PROPOSED FLOOR-LEVEL SPATIAL LINKAGE &mdash; NOT AN OFFICIAL ULPIN</div>
+        </aside>
+
         <!-- Right Sidebar for Legend -->
         <aside class="right-sidebar glass-panel">
             <div class="legend-container">
@@ -195,6 +278,46 @@
                 <div class="legend-item"><span class="legend-color conflict"></span><span>HUMAN VERIFICATION</span>
                 </div>
 
+                <div id="veg-legend" hidden>
+                    <h4 style="font-size: 10px; margin-top: 16px; margin-bottom: 8px; color: var(--text-muted);">
+                        VEGETATION EVIDENCE (NDVI, spatial)</h4>
+                    <div class="legend-item"><span class="legend-color" style="background: #10b981;"></span><span>Low /
+                            surrounding vegetation - building surface clear</span></div>
+                    <div class="legend-item"><span class="legend-color" style="background: #f59e0b;"></span><span>Edge /
+                            internal / mixed vegetation - verify</span></div>
+                    <div class="legend-item"><span class="legend-color" style="background: #ef4444;"></span><span>Vegetation
+                            dominant - elevation may be canopy</span></div>
+                    <div class="legend-item"><span class="legend-color" style="background: #64748b;"></span><span>Resolution
+                            limited / not determinable</span></div>
+                    <div class="legend-item"
+                        style="margin-top: 8px; color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+                        <i>Vegetation <b>around</b> a building does not lower its height confidence - only vegetation
+                            dominating the building surface does. NDVI is evidence, not a building-vs-tree classifier.
+                            No building is hidden.</i>
+                    </div>
+                </div>
+
+                <div id="floor-legend" hidden>
+                    <h4 style="font-size: 10px; margin-top: 16px; margin-bottom: 8px; color: var(--text-muted);">
+                        FLOOR DETECTION (Phase 12)</h4>
+                    <div class="legend-item"><span class="legend-color" style="background: #34d399;"></span><span>Observed
+                            &mdash; real OSM building:levels tag (solid outline)</span></div>
+                    <div class="legend-item"><span class="legend-color" style="background: #38bdf8;"></span><span>Predicted
+                            &mdash; ML estimate, medium confidence (dashed, badge <b>N*</b>)</span></div>
+                    <div class="legend-item"><span class="legend-color" style="background: #fbbf24;"></span><span>Predicted
+                            &mdash; ML estimate, low confidence (dashed, no proposed IDs)</span></div>
+                    <div class="legend-item"><span class="legend-color"
+                            style="border: 1px solid #64748b; background: transparent;"></span><span>Not determinable
+                            &mdash; no outline, no badge, no floor bands</span></div>
+                    <div class="legend-item"
+                        style="margin-top: 8px; color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+                        <i>A <b>*</b> on the badge and an <b>EST.</b> marker mean the count is a calibrated model estimate
+                            (P within &plusmn;1 floor), not a real tag. Red is never used here &mdash; it is reserved for
+                            conflict / human-verification. Estimated floor levels are a visual approximation, not measured
+                            slabs, not an official ULPIN.</i>
+                    </div>
+                </div>
+
                 <h4 style="font-size: 10px; margin-top: 16px; margin-bottom: 8px; color: var(--text-muted);">ELEVATION
                 </h4>
                 <div class="legend-item"><span>Ground Elevation: Bare-earth DEM</span></div>
@@ -214,7 +337,8 @@
         </div>
     </div>
 
-    <script src="app.js?v=9"></script>
+    <script src="floor3d.js?v=1"></script>
+    <script src="app.js?v=19"></script>
 </body>
 
 </html>
