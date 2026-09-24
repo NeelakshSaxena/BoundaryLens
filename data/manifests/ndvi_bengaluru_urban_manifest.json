@@ -51,7 +51,7 @@
   ],
   "licence": "Free and open - Contains modified Copernicus Sentinel data. https://sentinels.copernicus.eu/documents/247904/690755/Sentinel_Data_Legal_Notice",
   "processing_version": "load_sentinel2_ndvi/v1",
-  "retrieved_utc": "2026-09-09T15:35:30.415721+00:00",
+  "retrieved_utc": "2026-09-10T03:43:38.819799+00:00",
   "local_path": "data\\raw\\ndvi_s2_aoi.tif",
   "known_limitations": [
     "Single-date optical scene: shadows, haze and mixed pixels remain possible.",

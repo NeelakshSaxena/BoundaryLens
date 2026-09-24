@@ -17,7 +17,7 @@
     77.62635,
     12.93635
   ],
-  "retrieved_utc": "2026-09-09T20:23:55.162756+00:00",
+  "retrieved_utc": "2026-09-10T03:45:25.615898+00:00",
   "local_path": "data\\raw\\glo30_dsm.tif",
   "known_limitations": [
     "30 m pixels: individual small buildings are under-resolved",

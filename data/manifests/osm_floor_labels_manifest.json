@@ -92,7 +92,7 @@
     "height_tag (OSM, where present)"
   ],
   "geometry_projection": "local equirectangular (metres); adequate for shape features",
-  "retrieved_utc": "2026-09-09T20:26:47.500526+00:00",
+  "retrieved_utc": "2026-09-10T03:44:24.314015+00:00",
   "local_path": "data\\interim\\osm_floor_labels.csv",
   "known_limitations": [
     "crowd-sourced: some tags are wrong or approximate",
