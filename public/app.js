@@ -1263,5 +1263,32 @@ document.addEventListener("DOMContentLoaded", function () {
                 loaderEl.innerHTML = '<p style="color: #ef4444;">Error loading GIS data. Check console.</p>';
             }
         }
+
+        // Onboarding Modal Logic
+        const onboardingModal = document.getElementById("onboarding-modal");
+        const closeOnboarding = document.getElementById("close-onboarding");
+        const startAppBtn = document.getElementById("start-app-btn");
+        const toggleInfo = document.getElementById("toggle-info");
+
+        if (onboardingModal) {
+            if (!localStorage.getItem('boundaryLensOnboardingSeen')) {
+                onboardingModal.classList.add("active");
+            } else {
+                onboardingModal.classList.remove("active");
+            }
+
+            const dismissModal = () => {
+                onboardingModal.classList.remove("active");
+                localStorage.setItem('boundaryLensOnboardingSeen', 'true');
+            };
+
+            if (closeOnboarding) closeOnboarding.addEventListener("click", dismissModal);
+            if (startAppBtn) startAppBtn.addEventListener("click", dismissModal);
+            if (toggleInfo) {
+                toggleInfo.addEventListener("click", () => {
+                    onboardingModal.classList.add("active");
+                });
+            }
+        }
     });
 });

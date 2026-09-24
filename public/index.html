@@ -38,6 +38,9 @@
             <button id="toggle-map-style" class="control-btn" title="Toggle Satellite Map">
                 <i class="ph ph-globe"></i>
             </button>
+            <button id="toggle-info" class="control-btn" title="Information / Onboarding">
+                <i class="ph ph-info"></i>
+            </button>
             <button id="toggle-veg" class="control-btn" title="Highlight likely vegetation (NDVI evidence)">
                 <i class="ph ph-tree"></i>
             </button>
@@ -334,6 +337,49 @@
         <div id="loader" class="loader-overlay glass-panel">
             <div class="spinner"></div>
             <p>Initializing Spatial Context...</p>
+        </div>
+    </div>
+
+    <!-- Onboarding Modal -->
+    <div id="onboarding-modal" class="modal-overlay active">
+        <div class="modal-content glass-panel">
+            <button id="close-onboarding" class="close-btn"><i class="ph ph-x"></i></button>
+            <h2>Welcome to BoundaryLens</h2>
+            <p class="subtitle">SIH26011 Prototype for 3D Vertical Property Mapping</p>
+            
+            <div class="onboarding-section">
+                <h3>Why this is happening</h3>
+                <p>This prototype aims to provide 3D identities for surface parcels, multi-storey properties, and underground infrastructure. It creates a proposed vertical linkage from <strong>ULPIN / parcel reference &rarr; building entity &rarr; floor entity &rarr; unit/volume entity</strong>.</p>
+            </div>
+
+            <div class="onboarding-section">
+                <h3>Key Definitions</h3>
+                <ul class="definitions-list">
+                    <li><strong>ULPIN:</strong> Unique Land Parcel Identification Number.</li>
+                    <li><strong>DEM / DSM:</strong> Digital Elevation/Surface Model. Used to provide an above-ground height signal for building volume estimation.</li>
+                    <li><strong>Confidence:</strong> Data is classified as VERIFIED, PROVISIONAL, CONFLICT, or NOT_DETERMINABLE based on validation.</li>
+                </ul>
+            </div>
+
+            <div class="onboarding-section">
+                <h3>What the Buttons Do</h3>
+                <ul class="buttons-list">
+                    <li><i class="ph ph-map-trifold"></i> <strong>Cadastral Basemap:</strong> Toggles 2D property boundary lines.</li>
+                    <li><i class="ph ph-globe"></i> <strong>Satellite View:</strong> Toggles real-world satellite imagery.</li>
+                    <li><i class="ph ph-tree"></i> <strong>Vegetation:</strong> Highlights likely vegetation (NDVI) to distinguish it from buildings.</li>
+                    <li><i class="ph ph-stack"></i> <strong>Floors:</strong> Highlights buildings with an estimated floor count.</li>
+                    <li><i class="ph ph-list"></i> <strong>Legend:</strong> Toggles the legend on the right.</li>
+                </ul>
+            </div>
+
+            <div class="onboarding-section">
+                <h3>Limitations & Example</h3>
+                <p><strong>Why don't all buildings have a floor count yet?</strong></p>
+                <p>Floor count estimations rely heavily on high-resolution elevation data (like 1m Drone surveys). Current open satellite data (e.g., 30m resolution) is often too limited to accurately predict floor counts for smaller buildings, marking them as <code>NOT_DETERMINABLE</code>.</p>
+                <p style="margin-top: 12px; font-weight: 500; color: var(--text-primary);">Search for building ID:<br><code style="user-select: all; font-size: 13px; color: var(--accent-blue);">IN-KA-BLR-Pcadastral_parcel_22047-Bosm_way_347416034</code><br>to see a detailed vertical linkage simulation.</p>
+            </div>
+
+            <button id="start-app-btn" class="primary-btn">Get Started</button>
         </div>
     </div>
 
