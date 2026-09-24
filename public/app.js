@@ -1276,7 +1276,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (initialPinDone || !bldgsData || !bldgsData.features) return;
             initialPinDone = true;
 
-            const targetId = "IN-KA-BLR-Pcadastral_parcel_22047-Bosm_way_347416034";
+            const targetId = "osm_way_347416034";
             const targetFeature = bldgsData.features.find(f => (f.properties && f.properties.id === targetId) || f.id === targetId);
             
             if (targetFeature && targetFeature.geometry && targetFeature.geometry.coordinates) {
