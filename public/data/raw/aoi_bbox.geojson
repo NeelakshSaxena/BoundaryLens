@@ -1,0 +1,38 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bengaluru Urban AOI"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.61365,
+              12.92365
+            ],
+            [
+              77.62635,
+              12.92365
+            ],
+            [
+              77.62635,
+              12.93635
+            ],
+            [
+              77.61365,
+              12.93635
+            ],
+            [
+              77.61365,
+              12.92365
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
