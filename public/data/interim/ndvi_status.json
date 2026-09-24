@@ -1,0 +1,13 @@
+{
+  "ndvi_available": true,
+  "generated_utc": "2026-09-10T03:43:38.819799+00:00",
+  "path": "data\\raw\\ndvi_s2_aoi.tif",
+  "ndvi_source": "COPERNICUS_SENTINEL-2_L2A_NDVI",
+  "scene_id": "S2B_43PGQ_20240313_0_L2A",
+  "acquisition_date": "2024-03-13T05:25:16.952000Z",
+  "crs": "EPSG:32643",
+  "resolution": "10 m",
+  "cloud_cover": 0.000111,
+  "manifest": "data\\manifests\\ndvi_bengaluru_urban_manifest.json",
+  "provenance": "Sentinel-2 L2A surface reflectance (Copernicus). NDVI=(B08-B04)/(B08+B04) from scene S2B_43PGQ_20240313_0_L2A acquired 2024-03-13T05:25:16.952000Z. Cloud/shadow/snow pixels masked via SCL. Native 10 m, CRS EPSG:32643, no resampling of the NDVI grid. Contains modified Copernicus Sentinel data."
+}
