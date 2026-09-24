@@ -1,8 +1,9 @@
 {
-  "rewrites": [
+  "redirects": [
     {
-      "source": "/(.*)",
-      "destination": "/frontend_bengaluru/$1"
+      "source": "/",
+      "destination": "/frontend_bengaluru/",
+      "permanent": false
     }
   ]
 }
