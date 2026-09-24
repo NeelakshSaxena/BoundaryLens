@@ -1308,6 +1308,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     setTimeout(() => {
                         map.queryRenderedFeatures = originalQuery;
+
+                        // Automatically open the right panel (Floor View) and explode the 3D model
+                        setTimeout(() => {
+                            const btnViewFloors = document.getElementById("btn-view-floors");
+                            if (btnViewFloors) btnViewFloors.click();
+                            
+                            setTimeout(() => {
+                                const btnExplode = document.getElementById("fp-explode");
+                                if (btnExplode && !btnExplode.classList.contains("on")) {
+                                    btnExplode.click();
+                                }
+                            }, 400);
+                        }, 200);
                     }, 100);
                 }, 2800);
             }
