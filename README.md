@@ -8,7 +8,7 @@ This prototype deterministically fuses 2D GIS cadastral layers, satellite-derive
 
 ---
 
-## 🎯 Architecture & Implementation Phases
+## Architecture and Implementation Phases
 The project is built on a 17-step phase progression, defined strictly by our project constitution `AGENTS.md` and `docs/PHASES.md`. 
 
 | Phase | Description | Key Output / Technology |
@@ -32,7 +32,7 @@ The project is built on a 17-step phase progression, defined strictly by our pro
 
 ---
 
-## ⚙️ How to Reproduce & Run the Pipeline
+## How to Reproduce and Run the Pipeline
 
 The entire system is modular, deterministic, and can be reproduced on any local environment.
 
@@ -107,7 +107,7 @@ Once the pipeline finishes and the server starts:
 
 ---
 
-## 📄 Licensing & Data Sources
+## Licensing and Data Sources
 - **Cadastral Maps**: OpenCity GIS Data (Creative Commons)
 - **Building Footprints**: OpenStreetMap (ODbL)
 - **Terrain Elevation**: Copernicus GLO-30 DEM (Open Access)
