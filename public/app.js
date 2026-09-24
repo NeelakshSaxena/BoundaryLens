@@ -1290,5 +1290,33 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             }
         }
+
+        // Programmatically select default building on load
+        map.once("idle", () => {
+            if (!bldgsData || !bldgsData.features) return;
+            const targetId = "IN-KA-BLR-Pcadastral_parcel_22047-Bosm_way_347416034";
+            const targetFeature = bldgsData.features.find(f => (f.properties && f.properties.id === targetId) || f.id === targetId);
+            
+            if (targetFeature && targetFeature.geometry && targetFeature.geometry.coordinates) {
+                let coords = targetFeature.geometry.coordinates[0];
+                if (Array.isArray(coords[0]) && Array.isArray(coords[0][0])) {
+                    coords = coords[0];
+                }
+                const lngLat = new maplibregl.LngLat(coords[0][0], coords[0][1]);
+                
+                // Fly to the building
+                map.flyTo({ center: lngLat, zoom: 19, pitch: 60, bearing: -45, duration: 2500 });
+                
+                // Wait for the flyTo animation to finish, then simulate a click to open the panel
+                setTimeout(() => {
+                    const point = map.project(lngLat);
+                    map.fire("click", { 
+                        lngLat: lngLat, 
+                        point: point, 
+                        originalEvent: new MouseEvent("click") 
+                    });
+                }, 2800);
+            }
+        });
     });
 });
