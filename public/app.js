@@ -1289,14 +1289,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Fly to the building
                 map.flyTo({ center: lngLat, zoom: 19, pitch: 60, bearing: -45, duration: 2500 });
                 
-                // Simulate click to open panel
+                // Wait for the flyTo animation to finish, then simulate a click to open the panel
                 setTimeout(() => {
+                    const originalQuery = map.queryRenderedFeatures.bind(map);
+                    map.queryRenderedFeatures = function(point, options) {
+                        if (options && options.layers && options.layers.includes("buildings-3d-layer")) {
+                            return [targetFeature];
+                        }
+                        return originalQuery(point, options);
+                    };
+
                     const point = map.project(lngLat);
                     map.fire("click", { 
                         lngLat: lngLat, 
                         point: point, 
                         originalEvent: new MouseEvent("click") 
                     });
+
+                    setTimeout(() => {
+                        map.queryRenderedFeatures = originalQuery;
+                    }, 100);
                 }, 2800);
             }
         };
