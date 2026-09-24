@@ -1264,36 +1264,18 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        // Onboarding Modal Logic
+        // Onboarding Modal & Auto-pin Logic
         const onboardingModal = document.getElementById("onboarding-modal");
         const closeOnboarding = document.getElementById("close-onboarding");
         const startAppBtn = document.getElementById("start-app-btn");
         const toggleInfo = document.getElementById("toggle-info");
 
-        if (onboardingModal) {
-            if (!localStorage.getItem('boundaryLensOnboardingSeen')) {
-                onboardingModal.classList.add("active");
-            } else {
-                onboardingModal.classList.remove("active");
-            }
+        let initialPinDone = false;
 
-            const dismissModal = () => {
-                onboardingModal.classList.remove("active");
-                localStorage.setItem('boundaryLensOnboardingSeen', 'true');
-            };
+        const performInitialPin = () => {
+            if (initialPinDone || !bldgsData || !bldgsData.features) return;
+            initialPinDone = true;
 
-            if (closeOnboarding) closeOnboarding.addEventListener("click", dismissModal);
-            if (startAppBtn) startAppBtn.addEventListener("click", dismissModal);
-            if (toggleInfo) {
-                toggleInfo.addEventListener("click", () => {
-                    onboardingModal.classList.add("active");
-                });
-            }
-        }
-
-        // Programmatically select default building on load
-        map.once("idle", () => {
-            if (!bldgsData || !bldgsData.features) return;
             const targetId = "IN-KA-BLR-Pcadastral_parcel_22047-Bosm_way_347416034";
             const targetFeature = bldgsData.features.find(f => (f.properties && f.properties.id === targetId) || f.id === targetId);
             
@@ -1307,7 +1289,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Fly to the building
                 map.flyTo({ center: lngLat, zoom: 19, pitch: 60, bearing: -45, duration: 2500 });
                 
-                // Wait for the flyTo animation to finish, then simulate a click to open the panel
+                // Simulate click to open panel
                 setTimeout(() => {
                     const point = map.project(lngLat);
                     map.fire("click", { 
@@ -1317,6 +1299,24 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
                 }, 2800);
             }
-        });
+        };
+
+        if (onboardingModal) {
+            // Always show on fresh load
+            onboardingModal.classList.add("active");
+
+            const dismissModal = () => {
+                onboardingModal.classList.remove("active");
+                performInitialPin();
+            };
+
+            if (closeOnboarding) closeOnboarding.addEventListener("click", dismissModal);
+            if (startAppBtn) startAppBtn.addEventListener("click", dismissModal);
+            if (toggleInfo) {
+                toggleInfo.addEventListener("click", () => {
+                    onboardingModal.classList.add("active");
+                });
+            }
+        }
     });
 });
