@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/frontend_bengaluru/$1"
+    }
+  ]
+}

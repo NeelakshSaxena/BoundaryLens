@@ -16,20 +16,20 @@ Since the frontend is a purely static web application (HTML, CSS, Vanilla JS + M
 3. Under **Import Git Repository**, locate your BoundaryLens repository and click **Import**.
 
 ### 2. Configure Project Settings
-Once imported, you'll be taken to the **Configure Project** screen. Apply the exact settings shown below:
+Once imported, you'll be taken to the **Configure Project** screen. Apply the following settings to ensure Vercel only serves the frontend:
 
 1. **Project Name**: `BoundaryLens`
-2. **Application Preset**: Select **Python** from the dropdown.
-3. **Root Directory**: Leave it as `./` (the default).
+2. **Framework Preset**: Change this back to **Other** (Do not use Python).
+3. **Root Directory**: Click `Edit` and select `frontend_bengaluru`. This bypasses the Python backend entirely and strictly serves the map.
 
 ### 3. Build and Output Settings
-Since the project runs as a Python application with a static frontend, the default build settings can be left as is:
+Since the `frontend_bengaluru` folder contains raw HTML, CSS, and JS that does not need to be compiled (no webpack, Next.js, or Vite involved), the default build settings are perfectly fine:
 
 - **Build Command**: `Empty` (or `Override` toggled off)
 - **Output Directory**: `Empty` (or `Override` toggled off)
 - **Install Command**: `Empty` (or `Override` toggled off)
 
-*Vercel will build the Python environment (if required) and serve the frontend statically.*
+*Vercel will simply take all files in the `frontend_bengaluru` folder and serve them statically.*
 
 ### 4. Deploy
 1. Click the **Deploy** button.
